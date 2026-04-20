@@ -35,7 +35,8 @@ def set_seed(s: int):
     random.seed(s); np.random.seed(s); torch.manual_seed(s); torch.cuda.manual_seed_all(s)
 
 
-def filter_indices_by_ma(ds: WellDataset, ma_target: float, tol: float = MA_TOL) -> list[int]:
+def filter_indices_by_ma(ds: WellDataset, data_base: str, split: str,
+                         ma_target: float, tol: float = MA_TOL) -> list[int]:
     """Fast filter: parse M_A from HDF5 filenames (MHD_Ma_X_Ms_Y.hdf5) and map to
     window indices via the dataset's n_trajectories_per_file metadata. O(n_files).
 
@@ -44,28 +45,15 @@ def filter_indices_by_ma(ds: WellDataset, ma_target: float, tol: float = MA_TOL)
     = n_steps_per_trajectory - 1 (pairs of adjacent steps).
     """
     md = ds.metadata
-    # Discover the files WellDataset would use. the_well stores them under
-    # {base}/datasets/{name}/data/{split}/ when local.
-    base = Path(ds.well_base_path) if hasattr(ds, "well_base_path") else None
-    # the_well sets `.files` internally on WellDataset; use it if present.
-    files = None
-    for attr in ("files", "_files", "data_files"):
-        if hasattr(ds, attr):
-            cand = getattr(ds, attr)
-            if cand:
-                files = [str(p) for p in cand]; break
-    if files is None:
-        # fallback: glob the conventional layout
-        root = Path(ds.well_base_path) / "datasets" / md.dataset_name / "data" / ds.well_split_name
-        files = sorted(str(p) for p in root.glob("*.h*5"))
+    root = Path(data_base) / md.dataset_name / "data" / split
+    files = sorted(str(p) for p in root.glob("*.h*5"))
     if not files:
-        raise RuntimeError("filter_indices_by_ma: could not locate HDF5 files")
+        raise RuntimeError(f"filter_indices_by_ma: no HDF5 files in {root}")
 
-    files = sorted(files)
     n_trajs = md.n_trajectories_per_file
     n_steps = md.n_steps_per_trajectory
     if len(n_trajs) != len(files):
-        raise RuntimeError(f"n_trajectories_per_file has {len(n_trajs)} entries but {len(files)} files")
+        raise RuntimeError(f"n_trajectories_per_file has {len(n_trajs)} entries but {len(files)} files in {root}")
 
     idx = []
     window_offset = 0
@@ -147,8 +135,8 @@ def run(args):
     val_ma = TARGET_MA if args.mode in ("baseline", "finetune") else SOURCE_MA
 
     t0 = time.time()
-    train_idx = filter_indices_by_ma(ds, train_ma)
-    val_idx = filter_indices_by_ma(val_ds, val_ma)
+    train_idx = filter_indices_by_ma(ds, args.data_base, "train", train_ma)
+    val_idx = filter_indices_by_ma(val_ds, args.data_base, "valid", val_ma)
     print(f"[data] train(M_A={train_ma}): {len(train_idx)} windows  "
           f"val(M_A={val_ma}): {len(val_idx)} windows  ({time.time()-t0:.1f}s)")
 
