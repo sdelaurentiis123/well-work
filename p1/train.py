@@ -14,7 +14,7 @@ Usage
                   --data_frac 0.1 --epochs 20 --out runs/ft_10
 """
 from __future__ import annotations
-import argparse, os, json, time, math, random
+import argparse, os, json, re, time, math, random, glob
 from pathlib import Path
 
 import numpy as np
@@ -28,30 +28,53 @@ TARGET_MA = 0.7   # anisotropic, sub-Alfvenic, fusion-analog
 SOURCE_MA = 2.0   # isotropic, super-Alfvenic, ISM-regime
 MA_TOL = 0.05     # float match tolerance
 
+_FNAME_RX = re.compile(r"MHD_Ma_([\d.]+)_Ms_([\d.]+)\.h(?:df5|5)$")
+
 
 def set_seed(s: int):
     random.seed(s); np.random.seed(s); torch.manual_seed(s); torch.cuda.manual_seed_all(s)
 
 
 def filter_indices_by_ma(ds: WellDataset, ma_target: float, tol: float = MA_TOL) -> list[int]:
-    """Return dataset indices whose constant_scalars[0] (M_A) matches ma_target within tol.
+    """Fast filter: parse M_A from HDF5 filenames (MHD_Ma_X_Ms_Y.hdf5) and map to
+    window indices via the dataset's n_trajectories_per_file metadata. O(n_files).
 
-    the_well exposes constant_scalars in sample-order; we inspect them lazily by
-    reading the dataset's per-trajectory metadata to avoid streaming every sample.
-    Fall back to iterating if metadata isn't available.
+    Assumes WellDataset visits files in sorted filename order and that
+    n_trajectories_per_file aligns with that order. Window count per trajectory
+    = n_steps_per_trajectory - 1 (pairs of adjacent steps).
     """
-    n = len(ds)
+    md = ds.metadata
+    # Discover the files WellDataset would use. the_well stores them under
+    # {base}/datasets/{name}/data/{split}/ when local.
+    base = Path(ds.well_base_path) if hasattr(ds, "well_base_path") else None
+    # the_well sets `.files` internally on WellDataset; use it if present.
+    files = None
+    for attr in ("files", "_files", "data_files"):
+        if hasattr(ds, attr):
+            cand = getattr(ds, attr)
+            if cand:
+                files = [str(p) for p in cand]; break
+    if files is None:
+        # fallback: glob the conventional layout
+        root = Path(ds.well_base_path) / "datasets" / md.dataset_name / "data" / ds.well_split_name
+        files = sorted(str(p) for p in root.glob("*.h*5"))
+    if not files:
+        raise RuntimeError("filter_indices_by_ma: could not locate HDF5 files")
+
+    files = sorted(files)
+    n_trajs = md.n_trajectories_per_file
+    n_steps = md.n_steps_per_trajectory
+    if len(n_trajs) != len(files):
+        raise RuntimeError(f"n_trajectories_per_file has {len(n_trajs)} entries but {len(files)} files")
+
     idx = []
-    # Fast path: many Well datasets expose `trajectory_idx` and per-file constants.
-    # Fallback path: just stream scalars (cheap, no field reads).
-    loader = DataLoader(ds, batch_size=64, num_workers=2, shuffle=False,
-                        collate_fn=lambda b: torch.stack([x["constant_scalars"] for x in b]))
-    pos = 0
-    for batch in loader:
-        ma = batch[:, 0].numpy()
-        hits = np.where(np.abs(ma - ma_target) < tol)[0]
-        idx.extend((pos + hits).tolist())
-        pos += batch.shape[0]
+    window_offset = 0
+    for fpath, n_traj, n_step in zip(files, n_trajs, n_steps):
+        m = _FNAME_RX.search(os.path.basename(fpath))
+        n_windows_in_file = n_traj * (n_step - 1)
+        if m and abs(float(m.group(1)) - ma_target) < tol:
+            idx.extend(range(window_offset, window_offset + n_windows_in_file))
+        window_offset += n_windows_in_file
     return idx
 
 
@@ -108,14 +131,14 @@ def run(args):
                    config=vars(args), tags=[args.mode])
 
     # --- data ---
-    print("[data] resolving MHD_64 windows by M_A split (streaming scalars only)...")
+    print(f"[data] base={args.data_base}  resolving MHD_64 windows by M_A split...")
     ds = WellDataset(
-        well_base_path="hf://datasets/polymathic-ai/",
+        well_base_path=args.data_base,
         well_dataset_name="MHD_64",
         well_split_name="train",
     )
     val_ds = WellDataset(
-        well_base_path="hf://datasets/polymathic-ai/",
+        well_base_path=args.data_base,
         well_dataset_name="MHD_64",
         well_split_name="valid",
     )
@@ -203,6 +226,8 @@ def parse():
     p = argparse.ArgumentParser()
     p.add_argument("--mode", choices=["baseline", "pretrain", "finetune"], required=True)
     p.add_argument("--out", required=True)
+    p.add_argument("--data_base", default="/root/data",
+                   help="local data root (with datasets/MHD_64/ inside) or hf://datasets/polymathic-ai/")
     p.add_argument("--init_ckpt", default=None,
                    help="state_dict to load before training (finetune mode)")
     p.add_argument("--data_frac", type=float, default=1.0,
