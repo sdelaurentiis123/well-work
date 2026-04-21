@@ -16,7 +16,7 @@ from pathlib import Path
 BASELINE_GRID = {
     "lr":     [1e-4, 3e-4, 1e-3, 3e-3],
     "hidden": [32, 48, 64],
-    "epochs": [40, 80],     # dropped 120 — overfit territory on 37 windows, not worth 7 extra GPU-hrs
+    "epochs": [40],          # match original baseline_01 run (40 epochs). Overfit territory for 37 windows.
 }
 FT_GRID = {
     "lr":     [1e-4, 3e-4, 1e-3, 3e-3],
