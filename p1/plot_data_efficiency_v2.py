@@ -26,14 +26,18 @@ def run(args):
         0.1:  {"baseline": "baseline_10", "ft": "ft_10"},
         0.01: {"baseline": "baseline_01", "ft": "ft_01"},
     }
+    SEED_SUFFIX = re.compile(r"^(_s\d+)?$")
     results = {}
     for frac, cfg in configs.items():
         for kind, name in cfg.items():
             seeds = []
-            for d in runs.glob(f"{name}*"):
-                if not (d / "log.jsonl").exists(): continue
-                v = best_val(d / "log.jsonl")
-                if math.isfinite(v): seeds.append(v)
+            for d in runs.iterdir():
+                if not d.is_dir(): continue
+                tail = d.name[len(name):]
+                if d.name == name or (d.name.startswith(name) and SEED_SUFFIX.match(tail)):
+                    if not (d / "log.jsonl").exists(): continue
+                    v = best_val(d / "log.jsonl")
+                    if math.isfinite(v): seeds.append(v)
             results[(frac, kind)] = seeds
             print(f"  {name}: {len(seeds)} seeds  best={seeds}")
 
