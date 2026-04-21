@@ -30,9 +30,13 @@ class NonMHDTrajectoryDataset(Dataset):
     """Opens all *.hdf5 files under a dir, yields consecutive-timestep pairs,
     packs (t0_fields scalars + t1_fields vectors) into a fixed 7-channel tensor.
 
+    Standardizes each channel to zero-mean, unit-std using stats computed from
+    a random sample of windows (supernova density/pressure span many orders of
+    magnitude; without z-scoring the FNO can't learn).
+
     Zero-pads if the dataset has fewer than 7 channels; truncates if more.
     """
-    def __init__(self, root: str):
+    def __init__(self, root: str, stats_samples=64):
         self.files = sorted(glob.glob(os.path.join(root, "*.h*5")))
         if not self.files:
             raise RuntimeError(f"no HDF5 files in {root}")
@@ -54,6 +58,30 @@ class NonMHDTrajectoryDataset(Dataset):
         vectors = len(self.schema.get("t1_fields", [])) * 3
         self._raw_channels = scalars + vectors
         print(f"[NS-Dataset] raw channels={self._raw_channels} -> padded to {TARGET_CHANNELS}")
+
+        # Compute per-channel stats from a random sample for z-score normalization.
+        rng = np.random.default_rng(0)
+        sample_idx = rng.choice(len(self.index), size=min(stats_samples, len(self.index)), replace=False)
+        # mean, std shape (TARGET_CHANNELS,)
+        sum_c = np.zeros(TARGET_CHANNELS, dtype=np.float64)
+        sum_sq = np.zeros(TARGET_CHANNELS, dtype=np.float64)
+        n_vox = 0
+        for idx in sample_idx:
+            fi, tr, st = self.index[idx]
+            with h5py.File(self.files[fi], "r") as h:
+                x = self._load_state_raw(h, tr, st).astype(np.float64)  # (C, D, H, W)
+            sum_c += x.sum(axis=(1, 2, 3))
+            sum_sq += (x * x).sum(axis=(1, 2, 3))
+            n_vox += x[0].size
+        mean = sum_c / n_vox
+        var = sum_sq / n_vox - mean ** 2
+        std = np.sqrt(np.maximum(var, 1e-12))
+        # zero-padded channels will have std=0; force std=1 for them to be no-op
+        std = np.where(std < 1e-8, 1.0, std).astype(np.float32)
+        self.mean = mean.astype(np.float32).reshape(-1, 1, 1, 1)
+        self.std = std.reshape(-1, 1, 1, 1)
+        print(f"[NS-Dataset] per-channel mean: {mean.round(3).tolist()}")
+        print(f"[NS-Dataset] per-channel std:  {std.round(3).tolist()}")
 
     @staticmethod
     def _detect_shape(h):
@@ -79,8 +107,8 @@ class NonMHDTrajectoryDataset(Dataset):
                 schema[key] = sorted(list(h[key].keys()))
         return schema
 
-    def _load_state(self, h, traj, step):
-        """Returns (channels, D, H, W) float32."""
+    def _load_state_raw(self, h, traj, step):
+        """Returns (channels, D, H, W) float32 WITHOUT normalization."""
         chans = []
         for name in self.schema.get("t0_fields", []):
             a = h["t0_fields"][name][traj, step]     # (D,H,W)
@@ -99,6 +127,11 @@ class NonMHDTrajectoryDataset(Dataset):
             state = state[:TARGET_CHANNELS]
         return state
 
+    def _load_state(self, h, traj, step):
+        """Raw load + z-score standardize."""
+        state = self._load_state_raw(h, traj, step)
+        return (state - self.mean) / self.std
+
     def __len__(self): return len(self.index)
 
     def __getitem__(self, idx):
@@ -109,10 +142,15 @@ class NonMHDTrajectoryDataset(Dataset):
         return torch.from_numpy(x), torch.from_numpy(y)
 
 
-def vrmse(pred, y):
-    mse = (pred - y).pow(2).mean(dim=(2, 3, 4))
-    var = y.var(dim=(2, 3, 4), unbiased=False) + 1e-12
-    return (mse / var).sqrt().mean()
+def vrmse(pred, y, min_var=1e-6):
+    """VRMSE with masking for near-zero-variance channels (e.g. zero-padded)."""
+    mse = (pred - y).pow(2).mean(dim=(2, 3, 4))        # (B, C)
+    var = y.var(dim=(2, 3, 4), unbiased=False)          # (B, C)
+    mask = var > min_var                                # (B, C) valid channels only
+    # For masked-out channels, contribute 0 to the loss; mean over only valid channels
+    per_ch = torch.where(mask, (mse / (var + 1e-12)).sqrt(), torch.zeros_like(mse))
+    n_valid = mask.float().sum(dim=1).clamp_min(1.0)
+    return (per_ch.sum(dim=1) / n_valid).mean()
 
 
 def run(args):
