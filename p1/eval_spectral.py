@@ -29,15 +29,23 @@ from the_well.benchmark.models import FNO
 FIELD_NAMES = ["density", "B_x", "B_y", "B_z", "v_x", "v_y", "v_z"]
 
 
-def filter_by_ma(ds, ma_target, tol=0.05):
-    from torch.utils.data import DataLoader as DL
-    loader = DL(ds, batch_size=64, num_workers=2, shuffle=False,
-                collate_fn=lambda b: torch.stack([x["constant_scalars"] for x in b]))
-    idx, pos = [], 0
-    for batch in loader:
-        ma = batch[:, 0].numpy()
-        hits = np.where(np.abs(ma - ma_target) < tol)[0]
-        idx.extend((pos + hits).tolist()); pos += batch.shape[0]
+import re
+_FNAME_RX = re.compile(r"MHD_Ma_([\d.]+)_Ms_([\d.]+)\.h(?:df5|5)$")
+
+def filter_by_ma(ds, data_base, split, ma_target, tol=0.05):
+    import os
+    md = ds.metadata
+    root = Path(data_base) / md.dataset_name / "data" / split
+    files = sorted(str(p) for p in root.glob("*.h*5"))
+    n_trajs = md.n_trajectories_per_file
+    n_steps = md.n_steps_per_trajectory
+    idx, off = [], 0
+    for fpath, nt, ns in zip(files, n_trajs, n_steps):
+        m = _FNAME_RX.search(os.path.basename(fpath))
+        nw = nt * (ns - 1)
+        if m and abs(float(m.group(1)) - ma_target) < tol:
+            idx.extend(range(off, off + nw))
+        off += nw
     return idx
 
 
@@ -92,11 +100,11 @@ def vrmse(pred, y):
 def run(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     ds = WellDataset(
-        well_base_path="hf://datasets/polymathic-ai/",
+        well_base_path=args.data_base,
         well_dataset_name="MHD_64",
         well_split_name=args.split,
     )
-    target_idx = filter_by_ma(ds, 0.7)
+    target_idx = filter_by_ma(ds, args.data_base, args.split, 0.7)
     print(f"[data] M_A=0.7 windows in {args.split}: {len(target_idx)}")
 
     model = FNO(dim_in=7, dim_out=7, n_spatial_dims=3,
@@ -185,6 +193,7 @@ def parse():
     p.add_argument("--ckpt", required=True)
     p.add_argument("--out", required=True)
     p.add_argument("--split", default="test")
+    p.add_argument("--data_base", default="/root/data/datasets")
     p.add_argument("--n_traj", type=int, default=3)
     p.add_argument("--rollout", type=int, default=20)
     p.add_argument("--modes", type=int, default=12)
