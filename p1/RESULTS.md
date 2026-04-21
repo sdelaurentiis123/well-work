@@ -72,6 +72,88 @@ ft_01:        0.30340  0.30332  0.30335
 
 6. **No hyperparameter search on baseline_01.** Claim "pretraining wins at 1% data" is conditional on both configurations using the same `(lr=1e-3, bs=8, modes=12, hidden=48)`. A proper tuning sweep on baseline_01 could narrow the gap somewhat. Listed in `TODO.md` for the next compute session.
 
+## Cross-model rollout comparison
+
+![rollout comparison](figures/p1_rollout_comparison.png)
+
+Rollout VRMSE vs prediction step for all 7 models on 15 M_A=0.7 test trajectories.
+Key numeric table:
+
+| config | step 1 | step 5 | step 10 | step 25 | step 50 |
+|--------|--------|--------|---------|---------|---------|
+| baseline        | 0.28±0.02 | 0.63±0.02 | 0.92±0.05 | 1.43±0.09 | 2.13±0.75 |
+| ft_100          | 0.28±0.02 | 0.64±0.02 | 0.93±0.02 | 1.53±0.09 | 4.45±3.09 |
+| baseline_10     | 0.31±0.03 | 0.77±0.04 | 1.07±0.05 | 1.52±0.06 | 1.75±0.30 |
+| ft_10           | 0.29±0.02 | 0.67±0.03 | 0.98±0.07 | 1.55±0.14 | 2.70±1.05 |
+| **baseline_01** | 0.55±0.03 | 1.04±0.04 | 1.50±0.08 | 1.85±0.07 | **2.03±0.25** |
+| **ft_01**       | 0.31±0.01 | 0.85±0.08 | 1.35±0.20 | 2.64±0.22 | **15.68±4.46** |
+| pretrain (zero-shot) | 0.72±0.04 | 1.39±0.07 | 1.78±0.28 | 2.15±0.28 | 3.12±0.93 |
+
+ft_01 wins at step 1 (0.31 vs 0.55) but **blows up to 8× worse than baseline_01 by step 50**. All pretrained models eventually diverge worse than their scratch counterparts at long horizons. This is not a subtle effect — it's a structural pathology.
+
+## Anisotropic spectrum comparison
+
+![aniso](figures/p1_aniso_spectrum_comparison.png)
+
+2×2 panel of E(k_∥, k_⊥) for B_x at step 1 prediction, averaged over 10 M_A=0.7 test trajectories. Ground truth shows typical Goldreich-Sridhar anisotropy — power concentrated on the perpendicular axis with a weak parallel cascade. baseline (100% data) and ft_01 reproduce this faithfully. **baseline_01 (scratch, 1% data) loses the high-k_⊥ shoulder entirely — the model has not learned the perpendicular cascade at all.**
+
+## Cascade slopes
+
+![cascade](figures/p1_cascade_slopes.png)
+
+1D slices: E(k_⊥) at low k_∥ (perpendicular cascade, left) and E(k_∥) at low k_⊥ (parallel cascade, right), with Goldreich-Sridhar reference slopes k^{-5/3} and k^{-2}.
+
+- **Perpendicular cascade**: truth / baseline / ft_01 / ft_100 all collapse onto the same curve across 1.5 decades of k_⊥. **baseline_01 (red) drops off by nearly 2 orders of magnitude at k_⊥ ≥ 8.** This is the single most decisive "pretraining transferred physics" figure in the suite.
+- **Parallel cascade**: all models preserve it; the parallel direction is dominated by the guide field and the dynamics are nearly trivial along it.
+
+## Physics interpretability — what did pretraining actually transfer?
+
+Six physics-probing experiments on fixed checkpoints. Full figures in `figures/physics/`. Key findings summarized here.
+
+### 1. Conservation laws (`figures/physics/conservation_drift.png`, `divergence_violation.png`)
+
+Autoregressive rollout of 50 steps from each model on 10 M_A=0.7 test trajectories. Tracked: mass `∫ρ dV`, magnetic energy `∫B² dV`, kinetic energy `∫½ρv² dV`, ratio E_B/E_K, and ∇·B norm.
+
+- **Mass and energies drift in all models**; FNO3D architecturally does not enforce conservation. The drift magnitude is comparable across configs (0–20% over 50 steps), larger for pretrained models at long horizons.
+- **∇·B violation**: ft_01 (blue) produces the most magnetic monopoles — plateaus at ‖∇·B‖ / ⟨|B|⟩ ≈ 0.15, about 4× the baseline_01 level. **Pretraining makes ∇·B worse, not better.** This is a real limitation: the pretrained model has learned a dynamics that actively violates Maxwell's equations, while the undertrained baseline's smoothing coincidentally keeps ∇·B lower (because it predicts near-smooth states).
+
+### 2. Equipartition (`figures/physics/equipartition_evolution.png`)
+
+Theoretical equipartition in driven MHD turbulence: E_B/E_K ~ 1/M_A². Target (M_A=0.7) ≈ 2; source (M_A=2.0) ≈ 0.25.
+
+**The most direct signature of pretrain bias we found.** Ground truth stays at E_B/E_K ≈ 2.1 across the full rollout. baseline (100% data) drifts slowly to ~1.5. **ft_01 collapses rapidly from ~2.2 at step 0 toward 0.25 (the M_A=2.0 pretrain equipartition) and overshoots.** Even though ft_01 was fine-tuned on M_A=0.7, its rollout trajectory reveals that the pretrain bias toward the source regime's energy partition was **not fully overwritten** by fine-tuning. This is a concrete, interpretable demonstration that pretraining transferred *structure* (equipartition geometry), not just useful-but-abstract representations.
+
+### 3–4. Synthetic Alfvén and magnetosonic wave probes (`figures/physics/wave_probes.png`)
+
+Linear-amplitude Alfvén wave (v_y(x) = 0.01 sin(2πk x/L), k=4) on uniform background (ρ=1, B=(1,0,0)). Theoretical v_A = 1/√(4π) ≈ 0.282. Rolled 50 steps through each model.
+
+**Negative result for all models.** None of the four configurations propagates a clean linear Alfvén wave. The wave-peak position does not advance linearly with time; amplitudes grow nonlinearly (violating linear mode behavior); spectral content leaks from the initial k=4 mode into many other modes within 10-20 steps. Same picture for the magnetosonic probe.
+
+**Interpretation**: FNO3D trained only on turbulence snapshots has no inductive bias toward wave eigenmodes. It has learned the statistical structure of fully-developed turbulence but not the linearized wave physics. This is architecture-level, not data-level. Real MHD foundation models may need explicit wave-mode tokens, symmetry-equivariant layers, or mixed-objective training (turbulence + clean waves).
+
+### 5. Scaling invariance (`figures/physics/scaling_invariance.png`)
+
+Ideal MHD is invariant under (ρ → αρ, B → βB, v → β/√α · v). We scale a test snapshot, run the model, inverse-scale the output, and measure deviation from the un-scaled prediction.
+
+- All four models show **~20–40% per-channel deviations** under β=2 (pure magnetic/velocity rescaling). No model respects the scaling symmetry to within even 10%.
+- Under α=4 (density rescaling), deviations explode to >100% on velocity channels for all models.
+- **ft_01 has the most uniform deviation across channels under β=2**, suggesting it has at least a partial internally-consistent dimensional representation. baseline_01's extreme divergence on some channels (dev_B up to 4.99 on v_z) indicates it hasn't learned dimensional structure at all.
+
+### Synthesis: what did pretraining demonstrably transfer?
+
+| Physics property | Transferred? | Evidence |
+|---|---|---|
+| Short-horizon next-state accuracy | **YES** | 45% VRMSE gap at 1% data; test-split confirmation |
+| Perpendicular turbulent cascade (GS95) | **YES** | Cascade slopes figure — baseline_01 fails, ft_01 matches truth |
+| Absolute spectral power distribution | **YES** | 3× better absolute iso err on density at 1% data |
+| Equipartition of target regime | **NO — actively harmful** | ft_01 drifts toward pretrain M_A=2.0 regime during rollout, overshoots |
+| Long-horizon stability | **NO — actively harmful** | ft_01 VRMSE 8× worse than baseline_01 at step 50 |
+| Maxwell's constraint ∇·B=0 | **NO** | ft_01 has 4× larger monopole violation than baseline_01 |
+| Wave eigenmode propagation | **NO (for any model)** | No model propagates linear waves — architecture limitation |
+| Scaling symmetry | **PARTIAL** | ft_01 more uniform than baselines under β-rescale, all fail badly under α |
+
+The paper's framing should be: pretraining on the Well's MHD transfers **spatial-statistical structure** (cascades, spectra, short-horizon dynamics) but **does not** transfer **temporal/dynamical structure** (equipartition trajectories, long-horizon stability, waves). This has implications for plasma foundation model design: if the goal is long-horizon emulation, pretraining alone is not sufficient; explicit conservation-enforcement layers or physics-informed losses are likely required.
+
 ## Next steps (prioritized for Sironi meeting May 5)
 
 Essential before making claims externally:
