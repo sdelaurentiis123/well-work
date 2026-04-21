@@ -154,6 +154,120 @@ Ideal MHD is invariant under (ρ → αρ, B → βB, v → β/√α · v). We s
 
 The paper's framing should be: pretraining on the Well's MHD transfers **spatial-statistical structure** (cascades, spectra, short-horizon dynamics) but **does not** transfer **temporal/dynamical structure** (equipartition trajectories, long-horizon stability, waves). This has implications for plasma foundation model design: if the goal is long-horizon emulation, pretraining alone is not sufficient; explicit conservation-enforcement layers or physics-informed losses are likely required.
 
+## Deeper analysis — a richer picture of the failure asymmetry
+
+Eight additional plots (in `figures/deep/`) from the existing data extract
+more scientific content than the first-pass diagnostics. The key reframing:
+**pretraining does not just shift the long-horizon failure magnitude — it
+switches the kind of failure entirely.**
+
+### The two failure modes
+
+![pretrain persistence](figures/deep/pretrain_persistence_map.png)
+
+Six field-level statistics tracked across rollout show two distinct
+pathologies:
+
+- **baseline_01 (red, scratch at 1% data): collapse to smooth.**
+  Density std collapses ~60% by step 50. Velocity std collapses similarly.
+  Mean |B| stays flat. The model predicts an increasingly smoothed-out
+  state that hardly evolves; small fluctuations are averaged away.
+- **ft_01 (blue, pretrain + FT at 1% data): inflate with structure.**
+  Mean |B_x| grows from 1 to 3.5× over 50 steps — the mean background
+  field is amplifying. Density std *inflates* to 1.5 (10× truth).
+  v_x std inflates similarly. ∫|B|² nearly triples.
+  The model produces increasingly extreme fluctuations, not smoother ones.
+
+These are *opposite* failure modes. From-scratch at 1% data fails by
+losing information; pretrained at 1% data fails by generating too much.
+
+### Whole-spectrum inflation, not high-k noise
+
+![spectrum evolution](figures/deep/spectrum_evolution_per_model.png)
+
+Plotting E(k) at rollout steps {1, 5, 10, 25, 50} per (model, field) makes
+the mechanism visible. For baseline and ft_100 the spectra stay close to
+truth. For baseline_01 high-k power decays over time (confirming the
+collapse). **For ft_01 at step 50, the spectrum is offset UNIFORMLY above
+truth across two decades of k — by 1-2 orders of magnitude.** This rules
+out a "spurious UV noise" explanation (which would show runaway only at
+high k) in favor of a uniform energy-amplification pathology. The
+pretrained model has learned the *shape* of the MHD spectrum but not the
+correct *amplitude* scale, and the autoregressive rollout compounds a
+small multiplicative bias into a catastrophic energy inflation.
+
+![spectral heatmap v2](figures/deep/spectral_channel_heatmap_v2.png)
+
+Per-channel absolute spectral error (normalized by truth total power) at
+step 50 puts numbers on the inflation: ft_01 has errors of 56 (B_y), 24
+(B_z), 220 (v_x), 105 (v_y), 118 (v_z) times truth. baseline_01 tops out
+at 2.3. **ft_01's spectral energy content is wrong by 100× in some
+channels.**
+
+### Short-horizon accuracy is orthogonal to long-horizon stability
+
+![short vs long](figures/deep/short_vs_long_quantified.png)
+
+Scatter of step-1 vs step-50 VRMSE across all 15 training configurations.
+Spearman ρ across all runs = 0.05 (p=0.86). **Step-1 accuracy does not
+predict step-50 accuracy at all.** This formalizes what the rollout
+curves suggested: short-horizon and long-horizon are distinct objectives.
+Models at 1% data (baseline_01 and ft_01 with 3 seeds each) cluster in
+opposite corners of the scatter — baseline_01 in the "bad step-1, OK
+step-50" region, ft_01 in the "good step-1, catastrophic step-50" region.
+
+### Divergence-onset distribution
+
+![divergence onset](figures/deep/divergence_onset.png)
+
+For each (model, test trajectory), the first step at which VRMSE exceeds 1.5:
+
+| config | median onset step |
+|---|---|
+| baseline (100% data) | 26.5 |
+| ft_100 | 24.0 |
+| **ft_01** | **13.0** |
+| **baseline_01** | **11.0** |
+
+**ft_01's pretraining only buys ~2 steps of extra stability** (13 vs 11)
+compared to baseline_01 before divergence begins. The short-horizon
+advantage (factor 1.8× better step-1 VRMSE) fails to translate into
+proportionally-longer stable rollout.
+
+### Wave mode failure is architectural, not data-related
+
+![wave amplitude](figures/deep/wave_amplitude_growth.png)
+
+Linear Alfvén wave amplitude inflates by >10× over 30 steps for all four
+configurations (ideal linear wave should stay constant). Magnetosonic
+wave shows similar behavior. **The failure is architecture-level**: FNO3D
+trained only on turbulence snapshots does not internalize the linearized
+MHD wave-propagation structure. This is not fixable by more training data
+within this architecture.
+
+### Summary of the failure-asymmetry story
+
+| Diagnostic | baseline_01 | ft_01 | Interpretation |
+|---|---|---|---|
+| Step-1 VRMSE | 0.55 | 0.31 | Pretraining wins short horizon (1.8× better) |
+| Step-50 VRMSE | 2.0 | 15.7 | **Pretraining loses long horizon (8× worse)** |
+| Density variance at step 50 | 0.4× truth | 10× truth | Opposite failure modes |
+| Spectral inflation @ step 50 | 1.5× max | 220× max | Orders-of-magnitude separation |
+| ∇·B violation | moderate | 4× worse | Pretraining makes Maxwell worse |
+| Equipartition drift | stable near 1.2 | drifts to M_A=2.0 pretrain value 0.25 | Pretrain bias persists |
+| Alfvén mode purity | decays fast | decays fast | Architecture-level, not data-level |
+| Cascade preservation | loses high-k | preserves to k~20 | Pretraining wins here |
+
+Reading this table as a scientific claim: **pretraining on the Well MHD
+corpus transfers spatial-statistical structure (cascades, short-horizon
+prediction, mean-field amplitude) but fails to transfer temporal-dynamical
+stability. Moreover, the failure mode it induces ("confidently inflating
+energy while preserving spectral shape") is fundamentally different from
+the scratch-low-data failure mode ("smoothing away fluctuations"). For a
+plasma foundation model intended for long-horizon emulation, pretraining
+alone is actively harmful past ~step 13, and needs to be paired with
+explicit energy-conservation or total-power-regularization mechanisms.**
+
 ## Next steps (prioritized for Sironi meeting May 5)
 
 Essential before making claims externally:
