@@ -314,6 +314,46 @@ def fig6_conservation():
     save(fig, "fig6_conservation_violation", width_in=7.0, height_in=2.6)
 
 
+# --- fig7 per-trajectory rollout -------------------------------------------
+def fig7_per_trajectory():
+    """4-panel per-trajectory rollout VRMSE; verifies that mean behavior
+    in fig4 is not outlier-driven and shows the distinct OOD failure mode."""
+    phys = ROOT / "evals" / "physics"
+    conditions = [
+        ("baseline_01",   "scratch (1% data)",          C_SCRATCH),
+        ("baseline",      "scratch (100% data)",        C_BASELINE),
+        ("ft_01",         "MHD pretrain + FT (1%)",     C_MHD_FT),
+        ("pretrain_ood",  "MHD pretrain zero-FT (OOD)", C_NS),
+    ]
+    fig, axes = plt.subplots(2, 2, figsize=(7.0, 4.4), sharey=True)
+    for ax, (name, lbl, color) in zip(axes.flat, conditions):
+        p = phys / name / "rollout_vrmse_full.npz"
+        if not p.exists():
+            ax.set_title(f"{lbl} — missing data"); continue
+        v = np.load(p)["vrmse"]
+        steps = 1 + np.arange(v.shape[1])
+        for i in range(v.shape[0]):
+            ax.plot(steps, v[i], lw=0.6, color=color, alpha=0.35)
+        ax.plot(steps, v.mean(0),   lw=1.8, color=color, label="mean")
+        ax.plot(steps, np.median(v, axis=0), lw=1.1, color="black", ls="--",
+                label="median")
+        s1_m = v[:, 0].mean();  s1_s = v[:, 0].std()
+        s50_m = v[:, 49].mean(); s50_s = v[:, 49].std()
+        ax.set_title(
+            f"{lbl}\nstep-1 {s1_m:.2f}$\\pm${s1_s:.2f}  "
+            f"step-50 {s50_m:.2f}$\\pm${s50_s:.2f}",
+            fontsize=8.5)
+        ax.set_yscale("log")
+        ax.set_xlabel("rollout step")
+        ax.legend(loc="lower right", fontsize=7, frameon=False)
+    axes[0, 0].set_ylabel("VRMSE vs truth")
+    axes[1, 0].set_ylabel("VRMSE vs truth")
+    fig.suptitle("Per-trajectory rollout VRMSE — thin lines are individual "
+                 "test trajectories (n=10)", fontsize=9.5)
+    fig.tight_layout()
+    save(fig, "fig7_per_trajectory_rollout", width_in=7.0, height_in=4.4)
+
+
 # --- main -------------------------------------------------------------------
 def main():
     print("Generating paper-quality figures...")
@@ -323,6 +363,7 @@ def main():
     fig4_long_horizon()
     fig5_equipartition()
     fig6_conservation()
+    fig7_per_trajectory()
     print(f"\nAll figures in {OUT}/")
 
 
