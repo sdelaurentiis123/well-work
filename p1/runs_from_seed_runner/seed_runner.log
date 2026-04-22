@@ -1,0 +1,134 @@
+[32mActivated conda/uv virtual environment at [36m/venv/main[0m
+[seed_runner] Wed Apr 22 02:51:17 UTC 2026 waiting for downloads...
+[seed_runner] Wed Apr 22 02:52:17 UTC 2026 data: 10G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 02:53:17 UTC 2026 data: 10G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 02:54:17 UTC 2026 data: 20G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 02:55:17 UTC 2026 data: 20G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 02:56:17 UTC 2026 data: 20G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 02:57:17 UTC 2026 data: 22G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 02:58:17 UTC 2026 data: 40G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 02:59:17 UTC 2026 data: 40G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:00:17 UTC 2026 data: 40G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:01:17 UTC 2026 data: 40G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:02:17 UTC 2026 data: 40G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:03:17 UTC 2026 data: 40G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:04:17 UTC 2026 data: 68G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:05:17 UTC 2026 data: 80G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:06:17 UTC 2026 data: 80G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:07:17 UTC 2026 data: 80G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:08:17 UTC 2026 data: 80G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:09:17 UTC 2026 data: 80G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:10:17 UTC 2026 data: 58G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:11:17 UTC 2026 data: 57G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:12:17 UTC 2026 data: 57G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:13:17 UTC 2026 data: 57G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:14:18 UTC 2026 data: 57G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:15:18 UTC 2026 data: 57G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:16:18 UTC 2026 data: 57G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:17:18 UTC 2026 data: 57G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:18:18 UTC 2026 data: 57G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:19:18 UTC 2026 data: 57G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:20:18 UTC 2026 data: 57G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:21:18 UTC 2026 data: 57G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:22:18 UTC 2026 data: 57G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:23:18 UTC 2026 data: 57G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:24:18 UTC 2026 data: 62G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:25:18 UTC 2026 data: 68G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:26:18 UTC 2026 data: 72G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:27:18 UTC 2026 data: 76G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:28:18 UTC 2026 data: 79G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:29:18 UTC 2026 data: 81G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:30:18 UTC 2026 data: 84G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:31:18 UTC 2026 data: 87G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:32:18 UTC 2026 data: 88G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:33:18 UTC 2026 data: 90G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:34:18 UTC 2026 data: 90G; train=10/10 valid=0/10 sn=0/37
+[seed_runner] Wed Apr 22 03:35:18 UTC 2026 data: 90G; train=10/10 valid=10/10 sn=37/37
+[seed_runner] Wed Apr 22 03:35:18 UTC 2026 all data downloaded
+[seed_runner] Wed Apr 22 03:35:18 UTC 2026 MHD pretrain seed=1
+tee: runs/pretrain_s1.log: No such file or directory
+/venv/main/lib/python3.12/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+[cfg] mode=pretrain device=cuda out=runs/pretrain_s1
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from WANDB_API_KEY.
+wandb: Currently logged in as: sdelaurentiis123 (sdelaurentiis123-columbia-university) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: setting up run 6e1ehj4c
+wandb: Tracking run with wandb version 0.26.0
+wandb: Run data is saved locally in /root/well-work/wandb/run-20260422_033527-6e1ehj4c
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run pretrain_MA2_s1
+wandb: ⭐️ View project at https://wandb.ai/sdelaurentiis123-columbia-university/well-work-p1
+wandb: 🚀 View run at https://wandb.ai/sdelaurentiis123-columbia-university/well-work-p1/runs/6e1ehj4c
+[data] base=/root/data/datasets  resolving MHD_64 windows by M_A split...
+[data] train(M_A=2.0): 3960 windows  val(M_A=2.0): 495 windows  (0.0s)
+[model] FNO3D  params=18.62M
+/venv/main/lib/python3.12/site-packages/tltorch/factorized_tensors/factorized_tensors.py:66: UserWarning: Using a non-tuple sequence for multidimensional indexing is deprecated and will be changed in pytorch 2.9; use x[tuple(seq)] instead of x[seq]. In pytorch 2.9 this will be interpreted as tensor index, x[torch.tensor(seq)], which will result either in an error or a different result (Triggered internally at /pytorch/torch/csrc/autograd/python_variable_indexing.cpp:347.)
+  return self.__class__(self.tensor[indices])
+/venv/main/lib/python3.12/site-packages/neuralop/layers/spectral_convolution.py:459: UserWarning: Using a non-tuple sequence for multidimensional indexing is deprecated and will be changed in pytorch 2.9; use x[tuple(seq)] instead of x[seq]. In pytorch 2.9 this will be interpreted as tensor index, x[torch.tensor(seq)], which will result either in an error or a different result (Triggered internally at /pytorch/torch/csrc/autograd/python_variable_indexing.cpp:347.)
+  out_fft[slices_x] = self._contract(x[slices_x], weight, separable=False)
+[ep 00] train=0.5454  val=0.4684  time=204.9s
+  -> new best 0.4684, ckpt saved
+[ep 01] train=0.4373  val=0.4451  time=200.1s
+  -> new best 0.4451, ckpt saved
+[ep 02] train=0.4240  val=0.4374  time=205.8s
+  -> new best 0.4374, ckpt saved
+[ep 03] train=0.4171  val=0.4370  time=210.3s
+  -> new best 0.4370, ckpt saved
+[ep 04] train=0.4130  val=0.4307  time=211.0s
+  -> new best 0.4307, ckpt saved
+[ep 05] train=0.4109  val=0.4289  time=207.8s
+  -> new best 0.4289, ckpt saved
+[ep 06] train=0.4074  val=0.4281  time=209.8s
+  -> new best 0.4281, ckpt saved
+[ep 07] train=0.4055  val=0.4254  time=209.3s
+  -> new best 0.4254, ckpt saved
+[ep 08] train=0.4030  val=0.4252  time=208.7s
+  -> new best 0.4252, ckpt saved
+[ep 09] train=0.4014  val=0.4242  time=208.0s
+  -> new best 0.4242, ckpt saved
+[ep 10] train=0.3999  val=0.4233  time=209.9s
+  -> new best 0.4233, ckpt saved
+[ep 11] train=0.3982  val=0.4221  time=208.9s
+  -> new best 0.4221, ckpt saved
+[ep 12] train=0.3970  val=0.4212  time=209.7s
+  -> new best 0.4212, ckpt saved
+[ep 13] train=0.3958  val=0.4205  time=210.1s
+  -> new best 0.4205, ckpt saved
+[ep 14] train=0.3949  val=0.4202  time=209.4s
+  -> new best 0.4202, ckpt saved
+[ep 15] train=0.3942  val=0.4199  time=210.4s
+  -> new best 0.4199, ckpt saved
+[ep 16] train=0.3936  val=0.4196  time=209.1s
+  -> new best 0.4196, ckpt saved
+[ep 17] train=0.3933  val=0.4194  time=208.5s
+  -> new best 0.4194, ckpt saved
+[ep 18] train=0.3930  val=0.4193  time=208.3s
+  -> new best 0.4193, ckpt saved
+[ep 19] train=0.3929  val=0.4193  time=209.5s
+[done] best_val_vrmse=0.4193
+wandb: uploading history steps 1000-1007, summary; updating run metadata
+wandb: uploading history steps 1000-1007, summary
+wandb: uploading history steps 1008-1008, summary
+wandb: uploading history steps 1009-1009, summary, console lines 45-46
+wandb: 
+wandb: Run history:
+wandb:             epoch ▁▁▂▂▂▃▃▄▄▄▅▅▅▆▆▇▇▇██
+wandb: epoch/train_vrmse █▃▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:   epoch/val_vrmse █▅▄▄▃▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁
+wandb:                lr ███████████▇▇▇▇▆▆▆▅▅▄▃▃▃▃▃▃▂▂▂▂▂▁▁▁▁▁▁▁▁
+wandb:              step ▁▁▁▁▁▂▂▂▃▃▃▄▄▄▄▄▅▅▅▅▅▆▆▆▆▆▆▆▆▆▇▇▇▇▇█████
+wandb:       train/vrmse █▃▄▃▃▂▃▂▂▂▂▃▂▂▂▁▁▁▂▂▂▂▁▂▂▂▁▂▁▁▁▂▂▂▂▁▂▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:    best_val_vrmse 0.41929
+wandb:             epoch 19
+wandb: epoch/train_vrmse 0.39291
+wandb:   epoch/val_vrmse 0.41932
+wandb:                lr 0
+wandb:              step 9900
+wandb:       train/vrmse 0.37728
+wandb: 
+wandb: 🚀 View run pretrain_MA2_s1 at: https://wandb.ai/sdelaurentiis123-columbia-university/well-work-p1/runs/6e1ehj4c
+wandb: ⭐️ View project at: https://wandb.ai/sdelaurentiis123-columbia-university/well-work-p1
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20260422_033527-6e1ehj4c/logs

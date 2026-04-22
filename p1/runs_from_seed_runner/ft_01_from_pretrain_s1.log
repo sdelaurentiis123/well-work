@@ -1,0 +1,123 @@
+/venv/main/lib/python3.12/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+[cfg] mode=finetune device=cuda out=runs/ft_01_from_pretrain_s1
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from WANDB_API_KEY.
+wandb: Currently logged in as: sdelaurentiis123 (sdelaurentiis123-columbia-university) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: setting up run vm6j5q2o
+wandb: Tracking run with wandb version 0.26.0
+wandb: Run data is saved locally in /root/well-work/wandb/run-20260422_073041-vm6j5q2o
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run ft_01_from_pretrain_s1
+wandb: ⭐️ View project at https://wandb.ai/sdelaurentiis123-columbia-university/well-work-p1
+wandb: 🚀 View run at https://wandb.ai/sdelaurentiis123-columbia-university/well-work-p1/runs/vm6j5q2o
+[data] base=/root/data/datasets  resolving MHD_64 windows by M_A split...
+[data] train(M_A=0.7): 3663 windows  val(M_A=0.7): 495 windows  (0.0s)
+[data] fine-tune data_frac=0.01 -> 36 train windows
+[model] FNO3D  params=18.62M
+  loaded runs/pretrain_s1/best.pt  missing=0 unexpected=0
+/venv/main/lib/python3.12/site-packages/tltorch/factorized_tensors/factorized_tensors.py:66: UserWarning: Using a non-tuple sequence for multidimensional indexing is deprecated and will be changed in pytorch 2.9; use x[tuple(seq)] instead of x[seq]. In pytorch 2.9 this will be interpreted as tensor index, x[torch.tensor(seq)], which will result either in an error or a different result (Triggered internally at /pytorch/torch/csrc/autograd/python_variable_indexing.cpp:347.)
+  return self.__class__(self.tensor[indices])
+/venv/main/lib/python3.12/site-packages/neuralop/layers/spectral_convolution.py:459: UserWarning: Using a non-tuple sequence for multidimensional indexing is deprecated and will be changed in pytorch 2.9; use x[tuple(seq)] instead of x[seq]. In pytorch 2.9 this will be interpreted as tensor index, x[torch.tensor(seq)], which will result either in an error or a different result (Triggered internally at /pytorch/torch/csrc/autograd/python_variable_indexing.cpp:347.)
+  out_fft[slices_x] = self._contract(x[slices_x], weight, separable=False)
+[ep 00] train=0.5655  val=0.4103  time=19.1s
+  -> new best 0.4103, ckpt saved
+[ep 01] train=0.4249  val=0.3863  time=18.0s
+  -> new best 0.3863, ckpt saved
+[ep 02] train=0.3657  val=0.3683  time=17.9s
+  -> new best 0.3683, ckpt saved
+[ep 03] train=0.3482  val=0.3390  time=18.3s
+  -> new best 0.3390, ckpt saved
+[ep 04] train=0.3314  val=0.3298  time=18.1s
+  -> new best 0.3298, ckpt saved
+[ep 05] train=0.3184  val=0.3242  time=17.9s
+  -> new best 0.3242, ckpt saved
+[ep 06] train=0.3109  val=0.3186  time=18.3s
+  -> new best 0.3186, ckpt saved
+[ep 07] train=0.3042  val=0.3159  time=18.1s
+  -> new best 0.3159, ckpt saved
+[ep 08] train=0.3018  val=0.3130  time=18.0s
+  -> new best 0.3130, ckpt saved
+[ep 09] train=0.3000  val=0.3121  time=17.7s
+  -> new best 0.3121, ckpt saved
+[ep 10] train=0.2956  val=0.3094  time=18.4s
+  -> new best 0.3094, ckpt saved
+[ep 11] train=0.2936  val=0.3082  time=18.2s
+  -> new best 0.3082, ckpt saved
+[ep 12] train=0.2916  val=0.3071  time=18.3s
+  -> new best 0.3071, ckpt saved
+[ep 13] train=0.2866  val=0.3064  time=18.0s
+  -> new best 0.3064, ckpt saved
+[ep 14] train=0.2865  val=0.3051  time=18.0s
+  -> new best 0.3051, ckpt saved
+[ep 15] train=0.2851  val=0.3051  time=18.0s
+  -> new best 0.3051, ckpt saved
+[ep 16] train=0.2857  val=0.3037  time=17.8s
+  -> new best 0.3037, ckpt saved
+[ep 17] train=0.2848  val=0.3038  time=18.1s
+[ep 18] train=0.2831  val=0.3030  time=18.2s
+  -> new best 0.3030, ckpt saved
+[ep 19] train=0.2813  val=0.3026  time=18.2s
+  -> new best 0.3026, ckpt saved
+[ep 20] train=0.2824  val=0.3026  time=18.1s
+  -> new best 0.3026, ckpt saved
+[ep 21] train=0.2783  val=0.3022  time=17.8s
+  -> new best 0.3022, ckpt saved
+[ep 22] train=0.2797  val=0.3021  time=18.6s
+  -> new best 0.3021, ckpt saved
+[ep 23] train=0.2788  val=0.3016  time=18.0s
+  -> new best 0.3016, ckpt saved
+[ep 24] train=0.2789  val=0.3017  time=18.0s
+[ep 25] train=0.2779  val=0.3014  time=18.2s
+  -> new best 0.3014, ckpt saved
+[ep 26] train=0.2815  val=0.3014  time=18.1s
+[ep 27] train=0.2810  val=0.3011  time=18.3s
+  -> new best 0.3011, ckpt saved
+[ep 28] train=0.2792  val=0.3013  time=17.8s
+[ep 29] train=0.2780  val=0.3010  time=18.0s
+  -> new best 0.3010, ckpt saved
+[ep 30] train=0.2776  val=0.3010  time=18.2s
+  -> new best 0.3010, ckpt saved
+[ep 31] train=0.2800  val=0.3010  time=18.1s
+  -> new best 0.3010, ckpt saved
+[ep 32] train=0.2766  val=0.3009  time=18.2s
+  -> new best 0.3009, ckpt saved
+[ep 33] train=0.2794  val=0.3009  time=17.9s
+  -> new best 0.3009, ckpt saved
+[ep 34] train=0.2790  val=0.3009  time=17.8s
+[ep 35] train=0.2755  val=0.3009  time=18.0s
+  -> new best 0.3009, ckpt saved
+[ep 36] train=0.2777  val=0.3009  time=18.0s
+  -> new best 0.3009, ckpt saved
+[ep 37] train=0.2780  val=0.3009  time=18.4s
+  -> new best 0.3009, ckpt saved
+[ep 38] train=0.2790  val=0.3009  time=18.2s
+  -> new best 0.3009, ckpt saved
+[ep 39] train=0.2750  val=0.3009  time=18.0s
+  -> new best 0.3009, ckpt saved
+[done] best_val_vrmse=0.3009
+wandb: uploading history steps 53-54, summary, console lines 80-81; updating run metadata
+wandb: uploading history steps 53-54, summary, console lines 80-81; uploading output.log; uploading wandb-summary.json; uploading config.yaml
+wandb: uploading history steps 53-54, summary, console lines 80-81
+wandb: uploading history steps 55-55, summary, console lines 82-84
+wandb: 
+wandb: Run history:
+wandb:             epoch ▁▁▁▂▂▂▂▂▂▃▃▃▃▃▄▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇███
+wandb: epoch/train_vrmse █▅▃▃▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:   epoch/val_vrmse █▆▅▃▃▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:                lr ██▇▇▆▆▅▅▄▃▃▂▂▁▁▁
+wandb:              step ▁▁▂▂▃▃▄▄▅▅▆▆▇▇██
+wandb:       train/vrmse █▆▄▂▃▄▃▂▂▁▃▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:    best_val_vrmse 0.30085
+wandb:             epoch 39
+wandb: epoch/train_vrmse 0.27496
+wandb:   epoch/val_vrmse 0.30085
+wandb:                lr 0
+wandb:              step 160
+wandb:       train/vrmse 0.27309
+wandb: 
+wandb: 🚀 View run ft_01_from_pretrain_s1 at: https://wandb.ai/sdelaurentiis123-columbia-university/well-work-p1/runs/vm6j5q2o
+wandb: ⭐️ View project at: https://wandb.ai/sdelaurentiis123-columbia-university/well-work-p1
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20260422_073041-vm6j5q2o/logs

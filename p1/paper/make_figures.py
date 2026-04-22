@@ -66,20 +66,41 @@ def save(fig, name, width_in=3.5, height_in=2.6):
 def fig1_headline():
     hp = json.loads((ROOT / "hp_summary.json").read_text())
     import math as _m
-    # NS seeds
-    ns = []
-    for p in (ROOT / "runs").iterdir():
-        if p.is_dir() and p.name.startswith("ns_ft_01"):
-            lines = [json.loads(l) for l in (p/"log.jsonl").read_text().splitlines() if l.strip()]
-            if lines:
-                ns.append(min(r["val_vrmse"] for r in lines))
+
+    def best_val(p):
+        b = 1e9
+        for l in open(p):
+            r = json.loads(l); v = r.get("val_vrmse")
+            if v is not None and v < b: b = v
+        return b
+
     # Matched-architecture scratch: lr=3e-3, hidden=48 (same as pretrained FT's arch)
-    # Values from hp_summary.json baseline_rows: [0.4463, 0.4612, 0.4886]
     matched_scratch = [0.4463268383856743, 0.4612095355987549, 0.4885952770709991]
+
+    # 3-pretrain-seed MHD FTs: pretrain_s0 (represented by 3-FT-seed mean from hp_summary),
+    # pretrain_s1 + pretrain_s2 from runs_from_seed_runner
+    SEED_DIR = ROOT / "runs_from_seed_runner"
+    mhd_pts = [
+        hp["ft_01_best"]["mean"],
+        best_val(SEED_DIR / "ft_01_from_pretrain_s1" / "log.jsonl"),
+        best_val(SEED_DIR / "ft_01_from_pretrain_s2" / "log.jsonl"),
+    ]
+    # 3-pretrain-seed NS FTs: ns_pretrain_s0 (represented by 3-FT-seed mean from local
+    # ns_ft_01_s{0,1,2} runs), ns_pretrain_s1 + s2 from runs_from_seed_runner
+    ns_s0_vals = []
+    for p in (ROOT / "runs").iterdir():
+        if p.is_dir() and p.name.startswith("ns_ft_01_s"):
+            ns_s0_vals.append(best_val(p / "log.jsonl"))
+    ns_pts = [
+        float(np.mean(ns_s0_vals)),
+        best_val(SEED_DIR / "ns_ft_01_from_pretrain_s1" / "log.jsonl"),
+        best_val(SEED_DIR / "ns_ft_01_from_pretrain_s2" / "log.jsonl"),
+    ]
+
     bars = [
-        ("from scratch\n(matched arch h=48,\nlr-tuned)",  float(np.mean(matched_scratch)), float(np.std(matched_scratch)), C_SCRATCH),
-        ("NS pretrain + FT\n(non-MHD control,\nh=48)", float(np.mean(ns)), float(np.std(ns)), C_NS),
-        ("MHD pretrain + FT\n(h=48, lr-tuned)",          hp["ft_01_best"]["mean"],       hp["ft_01_best"]["std"],       C_MHD_FT),
+        ("from scratch\n(matched arch h=48,\nlr-tuned)", float(np.mean(matched_scratch)), float(np.std(matched_scratch)), C_SCRATCH),
+        ("NS pretrain + FT\n(non-MHD control,\nh=48, 3 pretrain seeds)", float(np.mean(ns_pts)), float(np.std(ns_pts)), C_NS),
+        ("MHD pretrain + FT\n(h=48, lr-tuned,\n3 pretrain seeds)", float(np.mean(mhd_pts)), float(np.std(mhd_pts)), C_MHD_FT),
     ]
     fig, ax = plt.subplots()
     xs = np.arange(len(bars))
@@ -90,8 +111,8 @@ def fig1_headline():
         ax.text(i, hh + ee + 0.015, f"{hh:.3f}", ha="center", fontsize=8)
     # deltas vs matched-architecture scratch baseline
     b_ref = float(np.mean(matched_scratch))
-    ns_delta = (float(np.mean(ns)) - b_ref) / b_ref * 100
-    mhd_delta = (hp["ft_01_best"]["mean"] - b_ref) / b_ref * 100
+    ns_delta = (float(np.mean(ns_pts)) - b_ref) / b_ref * 100
+    mhd_delta = (float(np.mean(mhd_pts)) - b_ref) / b_ref * 100
     ax.text(1, max(h)+0.05, f"{ns_delta:+.0f}%", ha="center", fontsize=8, color=C_NS,    fontweight="bold")
     ax.text(2, max(h)+0.05, f"{mhd_delta:+.0f}%", ha="center", fontsize=8, color=C_MHD_FT, fontweight="bold")
     ax.set_xticks(xs); ax.set_xticklabels([b[0] for b in bars])
