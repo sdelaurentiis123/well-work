@@ -98,9 +98,9 @@ def fig1_headline():
     ]
 
     bars = [
-        ("from scratch\n(matched arch h=48,\nlr-tuned)", float(np.mean(matched_scratch)), float(np.std(matched_scratch)), C_SCRATCH),
-        ("NS pretrain + FT\n(non-MHD control,\nh=48, 3 pretrain seeds)", float(np.mean(ns_pts)), float(np.std(ns_pts)), C_NS),
-        ("MHD pretrain + FT\n(h=48, lr-tuned,\n3 pretrain seeds)", float(np.mean(mhd_pts)), float(np.std(mhd_pts)), C_MHD_FT),
+        ("from scratch\n(h=48, 3 seeds)",        float(np.mean(matched_scratch)), float(np.std(matched_scratch)), C_SCRATCH),
+        ("NS pretrain + FT\n(non-MHD, 3 seeds)", float(np.mean(ns_pts)),          float(np.std(ns_pts)),           C_NS),
+        ("MHD pretrain + FT\n(3 seeds)",         float(np.mean(mhd_pts)),         float(np.std(mhd_pts)),          C_MHD_FT),
     ]
     fig, ax = plt.subplots()
     xs = np.arange(len(bars))
@@ -119,7 +119,7 @@ def fig1_headline():
     ax.set_ylabel("best val VRMSE  (mean ± std, 3 seeds)")
     ax.set_ylim(0, max(h) + max(e) + 0.10)
     ax.grid(axis="y", alpha=0.25)
-    ax.set_title("Physics-specific transfer at 1% target data", fontsize=10)
+    ax.set_title("Matched-architecture transfer at 1% target data", fontsize=10)
     save(fig, "fig1_headline_physics_specificity", width_in=3.6, height_in=2.8)
 
 
@@ -240,7 +240,7 @@ def fig4_long_horizon():
     ax.set_ylabel("VRMSE vs ground truth")
     ax.set_yscale("log")
     ax.legend(loc="upper left", fontsize=8)
-    ax.set_title("Long-horizon rollout — pretraining flips failure mode", fontsize=10)
+    ax.set_title("Long-horizon rollout — fine-tuning introduces late instability", fontsize=10)
     save(fig, "fig4_long_horizon_failure", width_in=3.6, height_in=2.6)
 
 
@@ -273,7 +273,7 @@ def fig5_equipartition():
     ax.text(45, 1/2.0**2 + 0.05, "pretrain regime (M_A=2.0)", fontsize=7, color="gray")
     ax.set_xlabel("rollout step"); ax.set_ylabel(r"$E_B / E_K$")
     ax.legend(loc="upper right", fontsize=7)
-    ax.set_title("Pretrain bias persists through fine-tuning", fontsize=10)
+    ax.set_title(r"$E_B/E_K$ drift during autoregressive rollout", fontsize=10)
     save(fig, "fig5_equipartition_drift", width_in=3.6, height_in=2.6)
 
 
