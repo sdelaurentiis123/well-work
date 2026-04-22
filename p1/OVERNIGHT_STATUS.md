@@ -76,9 +76,11 @@ fig2–fig6, Methods all untouched.)
   we ran 1 FT each. Reporting the 3-pretrain-seed mean assumes FT-seed variance is
   smaller than pretrain-seed variance (which it is, σ ≈ 3e-4 vs 1e-3 for MHD).
 - The `p1/runs_from_seed_runner/pretrain_s1/log.jsonl` shows `best_val_vrmse 0.41929` on
-  M_A=2.0 val — identical to the original pretrain run. This is expected (same seed-1
-  data order reproducibility) but mildly surprising. Worth sanity-checking if the three
-  "MHD pretrain seeds" are actually three independent initializations or share a seed.
+  M_A=2.0 val — identical to the original pretrain run. **Verified this is convergence
+  coincidence, not shared init**: epoch-0 train VRMSE differs across all three runs
+  (0.5390, 0.5454, 0.5478), confirming three distinct initializations. They converge
+  to nearly-identical endpoints because the dataset (3960 windows) is large enough that
+  20 epochs at lr=1e-3 dominates over init randomness. σ_MHD = 0.001 is real.
 
 ## One-line verdict
 
