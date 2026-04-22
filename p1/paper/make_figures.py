@@ -73,10 +73,13 @@ def fig1_headline():
             lines = [json.loads(l) for l in (p/"log.jsonl").read_text().splitlines() if l.strip()]
             if lines:
                 ns.append(min(r["val_vrmse"] for r in lines))
+    # Matched-architecture scratch: lr=3e-3, hidden=48 (same as pretrained FT's arch)
+    # Values from hp_summary.json baseline_rows: [0.4463, 0.4612, 0.4886]
+    matched_scratch = [0.4463268383856743, 0.4612095355987549, 0.4885952770709991]
     bars = [
-        ("from scratch\n(HP-tuned)",  hp["baseline_01_best"]["mean"], hp["baseline_01_best"]["std"], C_SCRATCH),
-        ("NS pretrain + FT\n(non-MHD control)", float(np.mean(ns)), float(np.std(ns)), C_NS),
-        ("MHD pretrain + FT\n(tuned)",          hp["ft_01_best"]["mean"],       hp["ft_01_best"]["std"],       C_MHD_FT),
+        ("from scratch\n(matched arch h=48,\nlr-tuned)",  float(np.mean(matched_scratch)), float(np.std(matched_scratch)), C_SCRATCH),
+        ("NS pretrain + FT\n(non-MHD control,\nh=48)", float(np.mean(ns)), float(np.std(ns)), C_NS),
+        ("MHD pretrain + FT\n(h=48, lr-tuned)",          hp["ft_01_best"]["mean"],       hp["ft_01_best"]["std"],       C_MHD_FT),
     ]
     fig, ax = plt.subplots()
     xs = np.arange(len(bars))
@@ -85,8 +88,8 @@ def fig1_headline():
            edgecolor=BAR_EDGECOLOR, linewidth=BAR_LINEWIDTH, width=0.6)
     for i, (hh, ee) in enumerate(zip(h, e)):
         ax.text(i, hh + ee + 0.015, f"{hh:.3f}", ha="center", fontsize=8)
-    # deltas
-    b_ref = hp["baseline_01_best"]["mean"]
+    # deltas vs matched-architecture scratch baseline
+    b_ref = float(np.mean(matched_scratch))
     ns_delta = (float(np.mean(ns)) - b_ref) / b_ref * 100
     mhd_delta = (hp["ft_01_best"]["mean"] - b_ref) / b_ref * 100
     ax.text(1, max(h)+0.05, f"{ns_delta:+.0f}%", ha="center", fontsize=8, color=C_NS,    fontweight="bold")
