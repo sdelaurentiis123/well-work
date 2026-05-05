@@ -1,0 +1,32 @@
+# Conda env (in-tree for clean wipe)
+env/
+.conda/
+
+# Large artifacts (Ginsburg-only)
+data/
+ckpts/
+outputs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Logs (raw SLURM output)
+slurm/*.out
+slurm/*.err
+*.log
+
+# Hydra outputs (Walrus uses Hydra)
+outputs/
+multirun/
+.hydra/
