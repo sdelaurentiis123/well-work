@@ -113,11 +113,12 @@ def fig1_headline():
     b_ref = float(np.mean(matched_scratch))
     ns_delta = (float(np.mean(ns_pts)) - b_ref) / b_ref * 100
     mhd_delta = (float(np.mean(mhd_pts)) - b_ref) / b_ref * 100
-    ax.text(1, max(h)+0.05, f"{ns_delta:+.0f}%", ha="center", fontsize=8, color=C_NS,    fontweight="bold")
-    ax.text(2, max(h)+0.05, f"{mhd_delta:+.0f}%", ha="center", fontsize=8, color=C_MHD_FT, fontweight="bold")
+    delta_y = max(h) + max(e) + 0.065
+    ax.text(1, delta_y, f"{ns_delta:+.0f}%", ha="center", fontsize=8, color=C_NS,    fontweight="bold")
+    ax.text(2, delta_y, f"{mhd_delta:+.0f}%", ha="center", fontsize=8, color=C_MHD_FT, fontweight="bold")
     ax.set_xticks(xs); ax.set_xticklabels([b[0] for b in bars])
     ax.set_ylabel("best val VRMSE  (mean ± std, 3 seeds)")
-    ax.set_ylim(0, max(h) + max(e) + 0.10)
+    ax.set_ylim(0, max(h) + max(e) + 0.14)
     ax.grid(axis="y", alpha=0.25)
     ax.set_title("Matched-architecture transfer at 1% target data", fontsize=10)
     save(fig, "fig1_headline_physics_specificity", width_in=3.6, height_in=2.8)
