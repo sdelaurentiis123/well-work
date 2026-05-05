@@ -3,6 +3,12 @@
 Experiments on Polymathic's **The Well** for plasma-turbulence foundation-model
 work, in the context of Stan's PhD.
 
+## 📄 Paper
+
+**[Pretraining Transfer for Neural MHD Surrogates: What Generalizes, What Doesn't, and Why It Matters for Plasma Foundation Models](p1/paper/main.pdf)** — workshop writeup of the P1 study below. PDF in `p1/paper/main.pdf`; LaTeX source in `p1/paper/main.tex`; figures in `p1/paper/figures/`.
+
+Companion blog post: [A plasma physics paper, with Claude](https://sdelaurentiis123.github.io/posts/plasma-with-claude.html) — short reflection on how the paper got built with Claude Code in the loop.
+
 ## P1 — Transfer study: ISM-regime MHD → fusion-regime MHD
 
 **Thesis.** Does pretraining a neural PDE surrogate on the Well's isotropic,
