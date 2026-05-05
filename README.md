@@ -1,13 +1,31 @@
 # well-work
 
+<p align="center">
+  <a href="p1/paper/main.pdf">
+    <img src="p1/paper/figures/fig1_headline_physics_specificity.png" alt="Matched-architecture transfer at 1% target data: MHD pretrain beats scratch by 35%, non-MHD pretrain hurts by 14%" width="560">
+  </a>
+</p>
+
+<p align="center">
+  <em>In-domain MHD pretraining cuts validation error by 35% at 1% target data. Pretraining on the wrong physics (supernova hydro, same architecture) hurts by 14%. Source corpus matters.</em>
+</p>
+
+<p align="center">
+  📄 <a href="p1/paper/main.pdf"><b>Paper (PDF)</b></a>
+  &nbsp;·&nbsp;
+  📝 <a href="https://sdelaurentiis123.github.io/posts/plasma-with-claude.html"><b>Blog post</b></a>
+  &nbsp;·&nbsp;
+  📁 <a href="p1/paper/figures/">Figures</a>
+  &nbsp;·&nbsp;
+  📐 <a href="p1/paper/main.tex">LaTeX source</a>
+</p>
+
+---
+
 Experiments on Polymathic's **The Well** for plasma-turbulence foundation-model
 work, in the context of Stan's PhD.
 
-## 📄 Paper
-
-**[Pretraining Transfer for Neural MHD Surrogates: What Generalizes, What Doesn't, and Why It Matters for Plasma Foundation Models](p1/paper/main.pdf)** — workshop writeup of the P1 study below. PDF in `p1/paper/main.pdf`; LaTeX source in `p1/paper/main.tex`; figures in `p1/paper/figures/`.
-
-Companion blog post: [A plasma physics paper, with Claude](https://sdelaurentiis123.github.io/posts/plasma-with-claude.html) — short reflection on how the paper got built with Claude Code in the loop.
+**Pretraining Transfer for Neural MHD Surrogates: What Generalizes, What Doesn't, and Why It Matters for Plasma Foundation Models** — small workshop writeup of the P1 study below. Companion [blog post](https://sdelaurentiis123.github.io/posts/plasma-with-claude.html) covers how the paper got built with Claude Code in the loop.
 
 ## P1 — Transfer study: ISM-regime MHD → fusion-regime MHD
 
