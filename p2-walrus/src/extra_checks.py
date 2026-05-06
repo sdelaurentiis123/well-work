@@ -62,6 +62,8 @@ def main():
     p.add_argument("--out_dir", required=True, type=Path)
     p.add_argument("--K", type=int, default=50)
     p.add_argument("--max_history", type=int, default=3)
+    p.add_argument("--start_frame", type=int, default=0,
+                   help="Absolute h5 frame for prediction start. Paper window: 14 (history 14-16, predict 17-).")
     p.add_argument("--device", default="cuda")
     args = p.parse_args()
 
@@ -69,10 +71,11 @@ def main():
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
     # We use trajectory index 0 as the canonical test case for both checks.
-    print(f"[extra_checks] mode={args.mode} loading 1 truth trajectory...")
+    print(f"[extra_checks] mode={args.mode} start_frame={args.start_frame} K={args.K} loading 1 truth trajectory...")
     truth = load_test_trajectories(
         args.test_dir, n_traj=1, n_frames=args.max_history + args.K,
-    )  # (1, 53, 7, 64³)
+        start_frame=args.start_frame,
+    )  # (1, max_history+K, 7, 64³)
     history = truth[0, : args.max_history]    # (3, 7, 64³)
     targets = truth[0, args.max_history : args.max_history + args.K]  # (50, 7, 64³)
     print(f"[extra_checks] truth shape: {truth.shape}")
