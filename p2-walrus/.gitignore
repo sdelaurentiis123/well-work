@@ -30,3 +30,7 @@ slurm/*.err
 outputs/
 multirun/
 .hydra/
+
+# fp64_rollout.npz files include full-resolution history+targets — too big for git (>100MB)
+results/extra_checks/fp64_rollout.npz
+results/extra_checks_paper_window/fp64_rollout.npz
