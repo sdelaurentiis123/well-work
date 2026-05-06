@@ -51,15 +51,19 @@ def load_test_trajectories(
     ma_target: float = 0.7,
     n_frames: int = ROLLOUT_K + 1,
     seed: int = 0,
+    start_frame: int = 0,
 ):
     """Load (n_traj, n_frames, 7, 64, 64, 64) from M_A=0.7 test files.
 
-    Each trajectory is `n_frames` consecutive timesteps starting from a random
-    (seeded) offset within the source h5 file.
+    Each trajectory is `n_frames` consecutive timesteps. With `start_frame=0`
+    and per_file > 1, sample multiple offsets per file (Paper 1 default).
+    With `start_frame>0`, take exactly that absolute starting frame from each
+    file (paper-window match: Walrus paper starts predictions at absolute
+    frame 17, so `start_frame=14, n_frames=63` gives history [14..16] +
+    predict [17..76]).
 
     For Paper 1's setup (FNO, 2-frame Markov): n_frames = K+1 = 51.
-    For shifted-window (Walrus + FNO comparison): n_frames = max_history + K = 60.
-        First `max_history` frames are conditioning input; remaining K are targets.
+    For shifted-window: n_frames = max_history + K.
     """
     files = sorted(
         p
@@ -79,6 +83,12 @@ def load_test_trajectories(
                 raise ValueError(
                     f"{fp.name} has only {n_st} timesteps; need ≥{n_frames}."
                 )
+            if start_frame > 0:
+                if start_frame > max_start:
+                    raise ValueError(
+                        f"start_frame={start_frame} > max_start={max_start} for {fp.name}"
+                    )
+                starts = [start_frame]
             elif max_start == 0:
                 starts = [0]
             else:

@@ -38,6 +38,8 @@ def parse():
     p.add_argument("--K", type=int, default=50)
     p.add_argument("--max_history", type=int, default=3,
                    help="Conditioning window. Walrus dataloader emits T_in=3 in extended_config.")
+    p.add_argument("--start_frame", type=int, default=0,
+                   help="Absolute h5 frame index for prediction start. Paper convention: 17 (history 14-16). Default 0 = predict from frame max_history-1.")
     p.add_argument("--device", default=None)
     return p.parse_args()
 
@@ -61,6 +63,7 @@ def main():
         args.test_dir,
         n_traj=args.n_traj,
         n_frames=args.max_history + args.K,
+        start_frame=args.start_frame,
     )
     print(f"[walrus_rollout] truth shape: {truth.shape}")
 
