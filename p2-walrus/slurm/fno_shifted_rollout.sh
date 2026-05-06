@@ -1,10 +1,9 @@
 #!/bin/bash -l
 #SBATCH --job-name=p2_fno
 #SBATCH --account=astro
-#SBATCH --partition=short
-#SBATCH --time=01:00:00
+#SBATCH --partition=astro1
+#SBATCH --time=02:00:00
 #SBATCH --gres=gpu:1
-#SBATCH --constraint=a40
 #SBATCH --mem=64G
 #SBATCH --cpus-per-task=8
 #SBATCH --output=slurm/fno_%j.out
