@@ -41,8 +41,8 @@ def parse():
     p.add_argument(
         "--max_history",
         type=int,
-        default=10,
-        help="Conditioning-window length. 1 for Paper-1-style, 10 for Walrus-comparison shifted window.",
+        default=3,
+        help="Conditioning window. 1 = Paper-1-style. 3 matches Walrus's empirical T_in for fair comparison.",
     )
     p.add_argument("--device", default=None, help="cuda/cpu/mps; auto-detect if omitted")
     p.add_argument(

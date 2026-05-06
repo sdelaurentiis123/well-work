@@ -36,16 +36,17 @@ def parse():
     p.add_argument("--out_root", required=True, type=Path)
     p.add_argument("--n_traj", type=int, default=10)
     p.add_argument("--K", type=int, default=50)
-    p.add_argument("--max_history", type=int, default=10)
+    p.add_argument("--max_history", type=int, default=3,
+                   help="Conditioning window. Walrus dataloader emits T_in=3 in extended_config.")
     p.add_argument("--device", default=None)
     return p.parse_args()
 
 
 def main():
     args = parse()
-    if args.max_history != 10:
+    if args.max_history != 3:
         raise ValueError(
-            "Walrus is hardcoded for n_history=10 (per configs/data/MHD_64.yaml:8)"
+            "Walrus's rollout_val dataloader emits T_in=3 (verified empirically)"
         )
 
     device = (

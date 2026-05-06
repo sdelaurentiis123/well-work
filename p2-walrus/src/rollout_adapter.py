@@ -60,14 +60,22 @@ class WalrusAdapter:
     walrus/demo_notebooks/walrus_example_1_RunningWalrus.ipynb so we don't have to
     instantiate the LightningModule.
 
+    Empirically (verified on Ginsburg via dataloader inspection):
+      - rollout_val dataloader emits input_fields shape (1, 3, 64, 64, 64, 7)
+      - 7 channels match Paper 1's order: [density, B_x, B_y, B_z, v_x, v_y, v_z]
+      - padded_field_mask is all True (no padding within MHD_64 view)
+
     Construction requires:
-      - checkpoint_path: path to walrus.pt (the_well download)
-      - config_path: path to extended_config.yaml (the_well download)
-      - well_base_path: path to MHD_64 dataset on disk (Walrus's data module needs
-        it to compute field stats during instantiation)
+      - checkpoint_path: path to walrus.pt
+      - config_path: path to extended_config.yaml
+      - well_base_path: path to MHD_64 dataset on disk. Walrus's data_module needs
+        train + valid splits to instantiate; **on Ginsburg we symlinked
+        train→test and valid→test** so only the test split needs to actually
+        be downloaded (the train_dataset is just used for field_to_index_map
+        and metadata templating, never iterated when prefetch_field_names=False).
     """
 
-    n_history = 10
+    n_history = 3
 
     def __init__(
         self,
@@ -125,15 +133,11 @@ class WalrusAdapter:
 
     @torch.no_grad()
     def rollout(self, history: np.ndarray, K: int) -> np.ndarray:
-        """Roll out K steps from a 10-frame history.
+        """Roll out K steps from a 3-frame history.
 
-        history: (10, 7, 64, 64, 64) — channel order [density, B_x, B_y, B_z, v_x, v_y, v_z]
+        history: (3, 7, 64, 64, 64) — channel order [density, B_x, B_y, B_z, v_x, v_y, v_z]
         Returns: (K, 7, 64, 64, 64)
         """
-        # Build a Walrus-format batch from the history. The exact batch structure
-        # is determined by the MHD_64 dataset's __getitem__; we mimic that here.
-        # Walrus MHD batch keys: input_fields, metadata, boundary_conditions,
-        # padded_field_mask, constant_fields, output_fields.
         batch = self._build_batch_from_history(history, K)
 
         y_pred, _ = _standalone_rollout_model(
@@ -144,59 +148,33 @@ class WalrusAdapter:
             max_rollout_steps=K,
             device=self.device,
         )
-        # y_pred shape per demo: (B, T, ..., C). Need to convert back to
-        # (K, 7, 64, 64, 64) with our channel order.
-        y_pred = y_pred[0].cpu().numpy()  # drop batch dim -> (T, H, W, D, C)
-        # Permute channels-last → channels-first: (T, H, W, D, C) → (T, C, H, W, D)
-        y_pred = np.moveaxis(y_pred, -1, 1)
-        # Restrict to first 7 channels (MHD) in the order Walrus stored them.
-        y_pred = y_pred[:K, :7]
-        # TODO: verify the channel ordering Walrus emits matches our [density,
-        # B_x, B_y, B_z, v_x, v_y, v_z]. May need a permutation here.
-        return y_pred.astype(np.float32)
+        # y_pred shape: (B=1, T, H, W, D, C=7). Drop batch, permute to channels-first.
+        y_pred = y_pred[0].cpu().numpy()              # (T, 64, 64, 64, 7)
+        y_pred = np.moveaxis(y_pred, -1, 1)           # (T, 7, 64, 64, 64)
+        return y_pred[:K].astype(np.float32)
 
     def _build_batch_from_history(self, history: np.ndarray, K: int):
         """Construct the dict Walrus's rollout_model expects.
 
-        Walrus expects (per demo notebook line ~150):
-          batch = {
-            "input_fields":  Tensor (B, T_in, H, W, D, C),
-            "metadata":      MetaData,
-            "boundary_conditions": ...,
-            "padded_field_mask": Tensor (C,) bool,
-            "constant_fields":   Tensor (B, ?, ..., C_const),
-          }
-
-        Easiest path: pull a real batch from the dataset, then overwrite
-        `input_fields` with our history. This guarantees we don't miss any
-        required key / metadata / shape constraint.
+        Strategy: pull a real MHD_64 batch from the dataloader as a template
+        (gets all metadata/masks/grids correct), then overwrite the
+        input_fields with our 3-frame history.
         """
-        # Pull one sample from the MHD dataset to get a properly-shaped template.
         loader = self.data_module.rollout_val_dataloaders()[0]
         template = next(iter(loader))
 
-        # history shape (10, 7, 64, 64, 64) — channels-first
-        # Need to transpose to channels-last and pad to Walrus's full channel set.
-        # template["input_fields"].shape gives us the full (B, T_in, H, W, D, C_full).
         T_in = template["input_fields"].shape[1]
         if T_in != self.n_history:
             raise RuntimeError(
-                f"Walrus T_in={T_in} but adapter.n_history={self.n_history}"
+                f"Walrus T_in={T_in} but adapter.n_history={self.n_history}. "
+                "Re-inspect dataloader; n_steps_input may have shifted in this config."
             )
-        C_full = template["input_fields"].shape[-1]
+        C = template["input_fields"].shape[-1]
+        if C != 7:
+            raise RuntimeError(f"Expected 7 channels (MHD), dataloader gave {C}")
 
-        hist_chan_last = np.moveaxis(history, 1, -1)  # (10, 64, 64, 64, 7)
-        # Pad along channel axis to C_full (other channels are masked out by
-        # padded_field_mask).
-        if C_full > 7:
-            padded = np.zeros(
-                (self.n_history, 64, 64, 64, C_full), dtype=np.float32
-            )
-            # We need to know where MHD's 7 channels live in the full C_full
-            # vector. field_to_index_map gives us this — TODO refine.
-            padded[..., :7] = hist_chan_last  # placeholder; will need the real index map
-            hist_chan_last = padded
-
+        # history shape (3, 7, 64, 64, 64) channels-first → channels-last (3, 64, 64, 64, 7)
+        hist_chan_last = np.moveaxis(history, 1, -1).astype(np.float32)
         template["input_fields"] = torch.tensor(hist_chan_last).unsqueeze(0)
         return template
 
