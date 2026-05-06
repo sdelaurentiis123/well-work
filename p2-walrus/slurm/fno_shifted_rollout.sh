@@ -1,7 +1,6 @@
 #!/bin/bash -l
 #SBATCH --job-name=p2_fno
 #SBATCH --account=astro
-#SBATCH --partition=short
 #SBATCH --time=01:00:00
 #SBATCH --gres=gpu:1
 #SBATCH --mem=64G
