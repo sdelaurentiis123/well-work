@@ -13,11 +13,17 @@ on plasma MHD test data, using Paper 1's physics-feature diagnostic apparatus.
 
 **This is not:** a comparison to Walrus's published Table 1 MHD T21-60 = 1.2256 number.
 That number is for *Walrus fine-tuned on MHD per Sec 5.2 cross-domain protocol* (additional
-500K samples). The paper does not publish a comparable zero-shot **VRMSE table entry**
-for MHD. Figure 15 (Appendix E.4.1) does plot a "Walrus-PT" rollout curve (pretrained, no
-fine-tune) for in-distribution datasets including MHD (3D), but not as a headline metric.
-Polymathic has not released a fine-tuned MHD checkpoint (HF: only base `polymathic-ai/walrus`
-available).
+500K samples). Polymathic has not released a fine-tuned MHD checkpoint (HF: only base
+`polymathic-ai/walrus` available).
+
+**The paper itself shows zero-shot Walrus blows up on MHD.** Figure 15 (Appendix E.4.1)
+of the Walrus paper plots the "Walrus-PT" (pretrained, no fine-tune) rollout curve for
+in-distribution datasets. The MHD (3D) panel shows it climbing from VRMSE ~1 at step 1
+to roughly **10⁶ by step 100** — consistent with our findings. Their Table 7 also lists
+MHD (3D) as one of only 3/19 pretraining datasets with median trajectory-averaged
+VRMSE ≥ 10 *with* patch jitter on. So the catastrophic zero-shot divergence is the
+paper's own published result. **What we add is the physics-feature decomposition of
+that failure mode**, not the observation that it exists.
 
 The natural follow-up — running the Sec 5.2 fine-tune protocol and applying this diagnostic
 suite to the result — is **future work** (estimated ~$200–400 on 4×H100). Best done as a
