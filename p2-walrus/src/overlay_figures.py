@@ -4,15 +4,16 @@ Reads .npz outputs from results/shifted_window/{fno_baseline, fno_ft,
 fno_pretrain_ood, walrus}/ and produces 6 overlay figures comparing all four
 configs on the same shifted window (frames [3..52]):
 
-    fig_vrmse_overlay.pdf      — VRMSE vs rollout step
-    fig_cascade.pdf            — perpendicular cascade at step 1
-    fig_bx_norm.pdf            — guide-field magnitude trajectory
-    fig_divb.pdf               — ∇·B floor accumulation
-    fig_equipartition.pdf      — E_B / E_K trajectory
-    fig_per_traj.pdf           — per-trajectory VRMSE (10 traces × 4 panels)
+    fig_vrmse_overlay.pdf      - VRMSE vs rollout step
+    fig_cascade.pdf            - perpendicular cascade at step 1
+    fig_bx_norm.pdf            - guide-field magnitude trajectory
+    fig_divb.pdf               - div B floor accumulation
+    fig_equipartition.pdf      - E_B / E_K trajectory
+    fig_per_traj.pdf           - per-trajectory VRMSE, all four models overlaid
+                                 in a single axes (10 trajectories each)
 
 Confound disclosure (printed in figure captions and findings.md):
-  - scale: Walrus 1.3B vs FNO 18M (≈70× params)
+  - scale: Walrus 1.3B vs FNO 18M (~70x params)
   - contamination: Walrus saw MHD_64 train; FNO trained on M_A=2.0 only
   - conditioning: Walrus T_in=3 vs FNO T_in=1 (small but nonzero)
 
@@ -112,17 +113,12 @@ def fig_cascade(root: Path):
 
 
 def fig_bx_norm(root: Path):
-    """Mean |B_x| over rollout — the guide-field-collapse diagnostic."""
+    """Mean |B_x| over rollout - the guide-field-collapse diagnostic."""
     fig, ax = plt.subplots(figsize=(6, 4.2))
     truth_drawn = False
     for cfg in CONFIGS:
         d = load_npz(root, cfg, "variance.npz")
         if d is None: continue
-        # variance_per_step has shape (n_traj, K+1, 7); channel 1 = B_x
-        # For the actual ⟨|B_x|⟩, we need the mean of |B_x|, not variance.
-        # We'll approximate via sqrt(variance + mean²) — but variance.npz only
-        # has variance, not mean. Conservation.npz has E_B = ∫|B|²/2 — better proxy.
-        # Use sqrt(2*E_B) as proxy for ⟨|B|⟩ (assuming dominated by B_x in MHD M_A=0.7).
         c = load_npz(root, cfg, "conservation.npz")
         if c is None: continue
         E_B = c["pred_E_B"].mean(0)  # (K+1,)
@@ -185,26 +181,29 @@ def fig_equipart(root: Path):
 
 
 def fig_per_traj(root: Path):
-    fig, axes = plt.subplots(2, 2, figsize=(10, 7), sharex=True, sharey=True)
-    for ax, cfg in zip(axes.flat, CONFIGS):
+    """Per-trajectory rollout VRMSE, all four configurations overlaid on a
+    single axes. Each configuration contributes up to 10 thin trajectory
+    traces plus a thicker mean line; the legend identifies configurations
+    by colour."""
+    fig, ax = plt.subplots(figsize=(7, 4.6))
+    for cfg in CONFIGS:
         d = load_npz(root, cfg, "rollout_vrmse_full.npz")
         if d is None:
-            ax.set_title(f"{LABELS[cfg]} (no data)")
             continue
         v = d["vrmse"]
         x = np.arange(1, v.shape[1] + 1)
+        # Individual trajectories: thin, semi-transparent.
         for i in range(v.shape[0]):
-            ax.plot(x, v[i], color=COLORS[cfg], lw=0.5, alpha=0.4)
-        ax.plot(x, v.mean(0), color=COLORS[cfg], lw=1.8, label="mean")
-        ax.plot(x, np.median(v, 0), color=COLORS[cfg], lw=1.2, ls="--", label="median")
-        ax.set_yscale("log")
-        ax.set_title(f"{LABELS[cfg]}\nstep1: {v[:,0].mean():.3f}±{v[:,0].std():.3f}, step50: {v[:,-1].mean():.2f}±{v[:,-1].std():.2f}")
-        ax.grid(alpha=0.3, which="both")
-        ax.legend(fontsize=7, loc="upper left")
-    for ax in axes[1, :]:
-        ax.set_xlabel("rollout step")
-    for ax in axes[:, 0]:
-        ax.set_ylabel("VRMSE")
+            ax.plot(x, v[i], color=COLORS[cfg], lw=0.5, alpha=0.35)
+        # Mean line carries the legend entry.
+        ax.plot(x, v.mean(0), color=COLORS[cfg], ls=LINESTYLES[cfg], lw=1.8,
+                label=LABELS[cfg])
+    ax.set_yscale("log")
+    ax.set_xlabel("rollout step")
+    ax.set_ylabel("VRMSE")
+    ax.grid(alpha=0.3, which="both")
+    ax.legend(fontsize=8, loc="upper left")
+    ax.set_title("Per-trajectory rollout VRMSE (all four models overlaid)")
     fig.tight_layout()
     return fig
 
