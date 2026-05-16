@@ -51,13 +51,13 @@ This work asks: \emph{what does zero-shot pretrained Walrus do, physics-feature-
   \item \textbf{Walrus zero-shot}: base pretrained \texttt{polymathic-ai/walrus} 1.3B, no fine-tuning, conditioned on 3 frames per the standard MHD\_64 inference setting.
 \end{itemize}
 
-\paragraph{Two evaluation windows.} We tested both:
+\paragraph{Preliminary: two evaluation windows.} As a preliminary characterization, we evaluated on two small trajectory samples:
 \begin{itemize}
   \setlength\itemsep{0.2em}
   \item \textbf{Early window:} input frames $[0,1,2]$ $\to$ predict frames $[3,\ldots,52]$, $K{=}50$, $n_{\text{traj}}{=}10$.
   \item \textbf{Paper window:} input frames $[14,15,16]$ $\to$ predict frames $[17,\ldots,76]$, $K{=}60$, $n_{\text{traj}}{=}5$. Matches the convention ``all predicted trajectories begin from $T{=}17$'' (Sec.~5 of~\cite{mccabe2025walrus}).
 \end{itemize}
-The headline divergence pattern reproduces in both windows; we present early-window numbers in the main text and report paper-window confirmations where they differ.
+The headline divergence pattern is consistent across both windows; we present early-window numbers in the main text and report paper-window observations where they differ. We emphasize that $n_{\text{traj}}{=}10$ (and $5$ for the paper window) is small relative to the 20--32-trajectory protocols of~\cite{mccabe2025walrus}: the qualitative pattern is robust at this sample size, but tight quantitative VRMSE statistics will require a larger rerun, which we flag as future work.
 
 \paragraph{Pipeline-equivalence verification.} A line-by-line diff of our standalone rollout function (lifted from \texttt{walrus/demo\_notebooks/walrus\_example\_1\_RunningWalrus.ipynb}) against Walrus's trainer rollout (\texttt{walrus/trainer/training.py:402--562}) finds six differences (e.g., we hardcode \texttt{predict\_delta=True} where the trainer reads \texttt{prediction\_type=="delta"}; we omit a Neutron-specific padded-mask resize hack), all functionally equivalent for MHD\_64 under the shipped \texttt{extended\_config.yaml}. Substitution of our 3-frame history into a real dataloader batch template inherits boundary conditions, padded-field mask, and field index map correctly. We additionally verified five paper-correspondence points: validation time stride is 1 (\texttt{multidatamodule.py:284}), boundary conditions are tagged periodic (BC tensor $= [[2,2],[2,2],[2,2]]$ for MHD\_64, where $2$=periodic), patch jitter is on at evaluation (\texttt{jitter\_patches: true} in \texttt{extended\_config.yaml} with no train/eval branching), no per-field MHD transformations are applied (paper Sec.~C.1; verified empirically), and channel ordering matches our $[\rho, B_x, B_y, B_z, v_x, v_y, v_z]$ convention (verified by step-1 per-channel variance matching truth statistics).
 
