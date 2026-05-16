@@ -108,7 +108,7 @@ Decomposing Walrus's step-50 prediction by physical channel reveals that the div
 
 \subsection{Cascade evolution: preferential high-$k$ pile-up}
 
-Figure~\ref{fig:cascade-evolution} shows the perpendicular cascade $E(k_\perp | k_\parallel \to 0)$ for $B_y$ and $B_z$ at multiple rollout steps. Walrus's predicted spectrum at step~1 is truth-like (low-$k$ dominated, $\sim$150$\times$ above high-$k$). As rollout progresses, the spectrum flattens: by step 50, low/mid/high-$k$ energies are within $\sim$1 order of magnitude.
+Figures~\ref{fig:cascade-evolution-by} and~\ref{fig:cascade-evolution-bz} show the perpendicular cascade $E(k_\perp | k_\parallel \to 0)$ for $B_y$ and $B_z$ at multiple rollout steps. Walrus's predicted spectrum at step~1 is truth-like (low-$k$ dominated, $\sim$150$\times$ above high-$k$). As rollout progresses, the spectrum flattens: by step 50, low/mid/high-$k$ energies are within $\sim$1 order of magnitude.
 
 The growth factors are decisively non-uniform across $k$:
 \begin{itemize}
@@ -121,9 +121,16 @@ The growth factors are decisively non-uniform across $k$:
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=0.9\linewidth]{figures/fig_cascade_evolution.pdf}
-  \caption{Perpendicular-cascade evolution for $B_y$ (top row) and $B_z$ (bottom row) at rollout steps 1, 5, 10, 25, 50. Walrus zero-shot (red, solid) departs from truth (black) progressively, with energy preferentially piling up at high $k_\perp$ by step 50. The high/low-$k$ ratio collapses from $\sim$150 (truth-like) at step~1 to $\sim$3 at step~50.}
-  \label{fig:cascade-evolution}
+  \includegraphics[width=0.95\linewidth]{figures/fig_cascade_evolution_By.pdf}
+  \caption{Perpendicular-cascade evolution for $B_y$ at rollout steps 1, 5, 10, 25, 50. Walrus zero-shot (red, solid) departs from truth (black) progressively, with energy preferentially piling up at high $k_\perp$ by step 50.}
+  \label{fig:cascade-evolution-by}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\linewidth]{figures/fig_cascade_evolution_Bz.pdf}
+  \caption{Perpendicular-cascade evolution for $B_z$ at rollout steps 1, 5, 10, 25, 50. Same configurations and color coding as Fig.~\ref{fig:cascade-evolution-by}; the high/low-$k$ ratio collapses from $\sim$150 (truth-like) at step~1 to $\sim$3 at step~50.}
+  \label{fig:cascade-evolution-bz}
 \end{figure}
 
 \subsection{Conservation diagnostics: catastrophic $\nabla\cdot B$ violation}

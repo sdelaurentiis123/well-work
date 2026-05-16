@@ -1,10 +1,16 @@
 """Task 2: cascade evolution at multiple rollout steps.
 
 Reads field_snapshots.npz (which has trajectory-averaged 3D fields at steps
-{1, 5, 10, 25, 50}), computes E(k_⊥) at low k_∥ for B_y and B_z separately,
+{1, 5, 10, 25, 50}), computes E(k_perp) at low k_par for B_y and B_z separately,
 overlays vs truth at each step. Identifies whether energy piles up at high k
 (numerical small-scale instability), low k (wrong cascade direction), or
 inflates uniformly.
+
+Outputs three artifacts:
+    fig_cascade_evolution.pdf      - legacy combined By-top/Bz-bottom layout
+                                     (kept for back-compat)
+    fig_cascade_evolution_By.pdf   - By-only row, cascade vs step
+    fig_cascade_evolution_Bz.pdf   - Bz-only row, cascade vs step
 """
 from __future__ import annotations
 import argparse
@@ -15,15 +21,88 @@ import matplotlib.pyplot as plt
 from .extract_physics import anisotropic_spectrum, b0_direction
 
 
+CFG_STYLES = [
+    ("walrus", "#d62728", "-"),
+    ("fno_ft", "#1f77b4", "-"),
+    ("fno_pretrain_ood", "#ff7f0e", ":"),
+    ("fno_baseline", "#888888", "--"),
+]
+
+
 def low_kpar_slice(H: np.ndarray, edges: np.ndarray, npar_slice: int = 2) -> np.ndarray:
-    """H shape (n_par, n_perp). Sum over first npar_slice k_par bins → E(k_perp)."""
+    """H shape (n_par, n_perp). Sum over first npar_slice k_par bins -> E(k_perp)."""
     return H[:npar_slice, :].sum(axis=0)
+
+
+def _single_channel_figure(snaps, steps, b0, ch_name: str, ch_idx: int):
+    """Make a 1-row figure for a single B-component across all rollout steps."""
+    fig, axes = plt.subplots(1, len(steps), figsize=(4 * len(steps), 3.6),
+                             sharey=True)
+    if len(steps) == 1:
+        axes = [axes]
+    for col, s in enumerate(steps):
+        ax = axes[col]
+        for cfg_name, color, ls in CFG_STYLES:
+            pred = snaps[cfg_name][f"pred_step{s}"][ch_idx]
+            edges, H = anisotropic_spectrum(pred, b0)
+            centers = 0.5 * (edges[:-1] + edges[1:])
+            E_perp = low_kpar_slice(H, edges)
+            ax.loglog(centers, E_perp + 1e-30, color=color, ls=ls, lw=1.4,
+                      label=cfg_name if col == 0 else None)
+        truth = snaps["walrus"][f"truth_step{s}"][ch_idx]
+        edges, Ht = anisotropic_spectrum(truth, b0)
+        centers = 0.5 * (edges[:-1] + edges[1:])
+        E_truth = low_kpar_slice(Ht, edges)
+        ax.loglog(centers, E_truth + 1e-30, color="black", lw=1.7, alpha=0.8,
+                  label="truth" if col == 0 else None)
+        ax.set_title(f"step {s}, {ch_name}")
+        ax.grid(alpha=0.3, which="both")
+        ax.set_xlabel(r"$k_\perp$")
+    axes[0].set_ylabel(r"$E(k_\perp)$ at low $k_\parallel$")
+    axes[0].legend(fontsize=7, loc="lower left")
+    fig.suptitle(f"Perpendicular cascade evolution: {ch_name}")
+    fig.tight_layout()
+    return fig
+
+
+def _combined_figure(snaps, steps, b0):
+    """Legacy combined 2-row figure (By top, Bz bottom)."""
+    fig, axes = plt.subplots(2, len(steps), figsize=(4 * len(steps), 7),
+                             sharey="row")
+    for col, s in enumerate(steps):
+        for row, ch_name, ch_idx in [(0, "B_y", 2), (1, "B_z", 3)]:
+            ax = axes[row, col]
+            for cfg_name, color, ls in CFG_STYLES:
+                pred = snaps[cfg_name][f"pred_step{s}"][ch_idx]
+                edges, H = anisotropic_spectrum(pred, b0)
+                centers = 0.5 * (edges[:-1] + edges[1:])
+                E_perp = low_kpar_slice(H, edges)
+                ax.loglog(centers, E_perp + 1e-30, color=color, ls=ls, lw=1.4,
+                          label=cfg_name if (row == 0 and col == 0) else None)
+            truth = snaps["walrus"][f"truth_step{s}"][ch_idx]
+            edges, Ht = anisotropic_spectrum(truth, b0)
+            centers = 0.5 * (edges[:-1] + edges[1:])
+            E_truth = low_kpar_slice(Ht, edges)
+            ax.loglog(centers, E_truth + 1e-30, color="black", lw=1.7, alpha=0.8,
+                      label="truth" if (row == 0 and col == 0) else None)
+            ax.set_title(f"step {s}, {ch_name}")
+            ax.grid(alpha=0.3, which="both")
+            if row == 1:
+                ax.set_xlabel(r"$k_\perp$")
+            if col == 0:
+                ax.set_ylabel(r"$E(k_\perp)$ at low $k_\parallel$")
+    axes[0, 0].legend(fontsize=7, loc="lower left")
+    fig.suptitle("Perpendicular cascade evolution: Walrus per-component pile-up")
+    fig.tight_layout()
+    return fig
 
 
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--results_root", type=Path, required=True)
-    p.add_argument("--out", type=Path, required=True)
+    p.add_argument("--out", type=Path, required=True,
+                   help="Path for the legacy combined figure; the per-component "
+                        "figures are derived from this stem.")
     args = p.parse_args()
 
     snaps = {
@@ -33,46 +112,28 @@ def main():
     steps = list(snaps["walrus"]["steps"])
     print(f"steps: {steps}")
 
-    # Use truth from any config (identical) to define b0 axis
-    truth_b1 = snaps["walrus"]["truth_step1"][1:4]  # (3, 64, 64, 64) — B at step 1
+    truth_b1 = snaps["walrus"]["truth_step1"][1:4]  # (3, 64, 64, 64) - B at step 1
     b0 = b0_direction(truth_b1)
     print(f"b0 (from truth step 1): {b0}")
 
-    fig, axes = plt.subplots(2, len(steps), figsize=(4 * len(steps), 7), sharey="row")
-    for col, s in enumerate(steps):
-        for row, ch_name, ch_idx in [(0, "B_y", 2), (1, "B_z", 3)]:
-            ax = axes[row, col]
-            for cfg_name, color, ls in [
-                ("walrus", "#d62728", "-"),
-                ("fno_ft", "#1f77b4", "-"),
-                ("fno_pretrain_ood", "#ff7f0e", ":"),
-                ("fno_baseline", "#888888", "--"),
-            ]:
-                pred = snaps[cfg_name][f"pred_step{s}"][ch_idx]
-                edges, H = anisotropic_spectrum(pred, b0)
-                centers = 0.5 * (edges[:-1] + edges[1:])
-                E_perp = low_kpar_slice(H, edges)
-                ax.loglog(centers, E_perp + 1e-30, color=color, ls=ls, lw=1.4, label=cfg_name if (row == 0 and col == 0) else None)
-            # Truth
-            truth = snaps["walrus"][f"truth_step{s}"][ch_idx]
-            edges, Ht = anisotropic_spectrum(truth, b0)
-            centers = 0.5 * (edges[:-1] + edges[1:])
-            E_truth = low_kpar_slice(Ht, edges)
-            ax.loglog(centers, E_truth + 1e-30, color="black", lw=1.7, alpha=0.8, label="truth" if (row == 0 and col == 0) else None)
-            ax.set_title(f"step {s}, {ch_name}")
-            ax.grid(alpha=0.3, which="both")
-            if row == 1:
-                ax.set_xlabel(r"$k_\perp$")
-            if col == 0:
-                ax.set_ylabel(r"$E(k_\perp)$ at low $k_\parallel$")
-    axes[0, 0].legend(fontsize=7, loc="lower left")
-
-    fig.suptitle("Perpendicular cascade evolution: Walrus per-component pile-up")
-    fig.tight_layout()
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(args.out, bbox_inches="tight")
-    fig.savefig(args.out.with_suffix(".png"), dpi=140, bbox_inches="tight")
+
+    # 1) Legacy combined figure (back-compat).
+    fig_all = _combined_figure(snaps, steps, b0)
+    fig_all.savefig(args.out, bbox_inches="tight")
+    fig_all.savefig(args.out.with_suffix(".png"), dpi=140, bbox_inches="tight")
+    plt.close(fig_all)
     print(f"wrote {args.out}")
+
+    # 2) Per-channel split figures (one per B-component).
+    stem = args.out.with_suffix("")
+    for ch_name_disp, ch_name_fn, ch_idx in [("B_y", "By", 2), ("B_z", "Bz", 3)]:
+        out_ch = stem.parent / f"{stem.name}_{ch_name_fn}.pdf"
+        fig_ch = _single_channel_figure(snaps, steps, b0, ch_name_disp, ch_idx)
+        fig_ch.savefig(out_ch, bbox_inches="tight")
+        fig_ch.savefig(out_ch.with_suffix(".png"), dpi=140, bbox_inches="tight")
+        plt.close(fig_ch)
+        print(f"wrote {out_ch}")
 
     # Quantitative: where does the energy concentrate?
     print("\n=== quantitative: walrus B_y / B_z energy by k-band ===")
