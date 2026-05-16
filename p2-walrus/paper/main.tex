@@ -214,8 +214,6 @@ Walrus was trained in FP32 (Sec.~B.1 of~\cite{mccabe2025walrus}). To rule out th
   \item The instability deterministically selects exactly one of $\{B_y, B_z\}$ to amplify, where the selection is determined by the specific 3-frame input slice and is robust to $10^{-6}$ amplitude perturbation of that slice (Table~\ref{tab:basin}; perturbation test).
   \item The parallel guide field $B_x$, density, and all velocity components remain near truth-like throughout. The instability is localized to perpendicular B-fluctuations.
   \item FP64 inference does not suppress the divergence (same magnitude at step 50). \emph{Structural, not numerical.}
-  \item Cascade evolution shows preferential high-$k$ pile-up (Gibbs-style aliasing) co-localized with $\nabla\cdot B$ violation reaching $\sim$5$\times 10^5\times$ truth.
-  \item The diagnostic pattern reproduces in both early-window (frames 0--52) and paper-window (frames 14--76) evaluations.
 \end{itemize}
 
 \paragraph{What our results do not establish.}
