@@ -55,7 +55,7 @@ This work asks: \emph{what does zero-shot pretrained Walrus do, physics-feature-
 \paragraph{Two evaluation windows.} We tested both:
 \begin{itemize}
   \setlength\itemsep{0.2em}
-  \item \textbf{Early window:} input frames $[0,1,2]$ $\to$ predict frames $[3,\ldots,52]$, $K{=}50$, $n_{\text{traj}}{=}10$.
+  \item \textbf{Early window (preliminary):} input frames $[0,1,2]$ $\to$ predict frames $[3,\ldots,52]$, $K{=}50$, $n_{\text{traj}}{=}10$. We report this as a preliminary characterization (it does not match the paper's $T{\geq}17$ rollout convention); the paper window below is the primary evaluation.
   \item \textbf{Paper window:} input frames $[14,15,16]$ $\to$ predict frames $[17,\ldots,76]$, $K{=}60$, $n_{\text{traj}}{=}5$. Matches the convention ``all predicted trajectories begin from $T{=}17$'' (Sec.~5 of~\cite{mccabe2025walrus}).
 \end{itemize}
 The headline divergence pattern reproduces in both windows; we present early-window numbers in the main text and report paper-window confirmations where they differ.
