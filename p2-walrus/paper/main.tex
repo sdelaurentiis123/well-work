@@ -51,7 +51,7 @@ This work asks: \emph{what does zero-shot pretrained Walrus do, physics-feature-
   \item \textbf{Walrus zero-shot}: base pretrained \texttt{polymathic-ai/walrus} 1.3B, no fine-tuning, conditioned on 3 frames per the standard MHD\_64 inference setting.
 \end{itemize}
 
-\paragraph{Two evaluation windows.} We tested both:
+\paragraph{Preliminary evaluation windows.} The windowing choices below are exploratory and subject to revision. We tested both:
 \begin{itemize}
   \setlength\itemsep{0.2em}
   \item \textbf{Early window:} input frames $[0,1,2]$ $\to$ predict frames $[3,\ldots,52]$, $K{=}50$, $n_{\text{traj}}{=}10$.
